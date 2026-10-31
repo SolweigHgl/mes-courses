@@ -13,7 +13,7 @@ qu'à « livrer » l'application ; ils ne contiennent aucune donnée personnelle
 | `app.js` | Tout le fonctionnement de l'application |
 | `manifest.json` | Nom et icône de l'application sur l'écran d'accueil |
 | `sw.js` | Permet d'ouvrir l'application sans réseau |
-| `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` | Icônes |
+| `favicon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` | Icône de l'application |
 
 ## 1. Mettre les fichiers sur GitHub (une seule fois)
 
@@ -57,3 +57,13 @@ Pour rouvrir l'application après un nettoyage, le téléphone doit donc avoir d
 ## 6. Essai rapide sur l'ordinateur (facultatif)
 
 Dans le dossier de l'application, ouvrez un terminal et lancez `python3 -m http.server 8000`, puis ouvrez `http://localhost:8000`.
+
+## Crédits
+
+Les icônes sont issues de **Lucide** (https://lucide.dev), sous licence ISC.
+
+## Historique
+
+- **1.2.0** : icône de l'application et favicon (panier Lucide) ; couleurs rose, vert, orange (FF7F00), turquoise, taupe, plus une couleur au choix.
+- **1.1.0** : icônes plates (Lucide) à la place des émojis ; couleurs rose, vert, turquoise et taupe ; fond de la semaine en taupe clair, jours en blanc avec bordure taupe ; repère du jour dans la couleur choisie.
+- **1.0.0** : première version.

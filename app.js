@@ -2,17 +2,39 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.0.0';
+const VERSION = '1.2.0';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
 const UNITS = [['', 'unité'], ['g', 'g'], ['kg', 'kg'], ['ml', 'ml'], ['cl', 'cl'], ['l', 'L'], ['bouquet', 'bouquet'], ['boîte', 'boîte'], ['sachet', 'sachet'], ['paquet', 'paquet'], ['pot', 'pot'], ['tranche', 'tranche']];
 const SLOTS = ['Petit-déjeuner', 'Brunch', 'Apéro', 'Midi', 'Goûter', 'Dîner'];
-const THEMES = { rose: ['#D92A63', '#EC5E8C', '#FBE6EF'], turquoise: ['#1A8274', '#3DB5A3', '#E0F3EF'], orange: ['#B85F17', '#E28A42', '#FDEFE0'], vert: ['#2F7D4F', '#4AA673', '#E3F0E8'] };
-const EMOJIS = [['pomme de terre', '🥔'], ['pommes de terre', '🥔'], ['patate', '🥔'], ['lait', '🥛'], ['creme', '🥛'], ['yaourt', '🥛'], ['pain', '🍞'], ['baguette', '🥖'], ['oeuf', '🥚'], ['œuf', '🥚'], ['banane', '🍌'], ['beurre', '🧈'], ['fromage', '🧀'], ['gruyere', '🧀'], ['mozzarella', '🧀'], ['parmesan', '🧀'], ['pomme', '🍎'], ['poire', '🍐'], ['carotte', '🥕'], ['courgette', '🥒'], ['concombre', '🥒'], ['tomate', '🍅'], ['salade', '🥬'], ['oignon', '🧅'], ['ail', '🧄'], ['poivron', '🫑'], ['champignon', '🍄'], ['aubergine', '🍆'], ['brocoli', '🥦'], ['mais', '🌽'], ['citron', '🍋'], ['orange', '🍊'], ['fraise', '🍓'], ['raisin', '🍇'], ['poulet', '🍗'], ['porc', '🥩'], ['boeuf', '🥩'], ['steak', '🥩'], ['viande', '🥩'], ['jambon', '🥓'], ['lardon', '🥓'], ['saucisse', '🌭'], ['saumon', '🐟'], ['poisson', '🐟'], ['thon', '🐟'], ['crevette', '🦐'], ['pate', '🍝'], ['raviolis', '🍝'], ['spaghetti', '🍝'], ['riz', '🍚'], ['cafe', '☕'], ['the ', '🍵'], ['eau', '💧'], ['vin', '🍷'], ['biere', '🍺'], ['jus', '🧃'], ['chocolat', '🍫'], ['biscuit', '🍪'], ['gateau', '🍰'], ['glace', '🍦'], ['huile', '🫒'], ['sel', '🧂'], ['sucre', '🍬'], ['farine', '🌾'], ['miel', '🍯'], ['lentille', '🫘'], ['haricot', '🫘'], ['pois', '🫛'], ['papier', '🧻'], ['lessive', '🧴'], ['savon', '🧼']];
+const THEMES = { rose: ['#D92A63', '#EC5E8C', '#FBE6EF'], vert: ['#2F7D4F', '#4AA673', '#E3F0E8'], orange: ['#B05400', '#FF7F00', '#FFF0DE'], turquoise: ['#1A8A7C', '#4CC4B0', '#DFF4F0'], taupe: ['#756559', '#A08F82', '#EEE8E2'] };
+
+
+/* ---------- Icônes ----------
+   Icônes « Lucide » (https://lucide.dev), licence ISC. Style plat : traits fins, sans relief. */
+const ICONS = {
+  'shopping-cart': '<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+  'calendar-days': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>',
+  'utensils': '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+  'settings': '<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/>',
+  'shopping-basket': '<path d="m15 11-1 9"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="M4.5 15.5h15"/><path d="m5 11 4-7"/><path d="m9 11 1 9"/>',
+  'check': '<path d="M20 6 9 17l-5-5"/>',
+  'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  'plus': '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  'minus': '<path d="M5 12h14"/>',
+  'chevron-left': '<path d="m15 18-6-6 6-6"/>',
+  'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+  'triangle-alert': '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
+};
+function ic(name, size = 20, sw = 2) {
+  const e = document.createElement('span'); e.className = 'ic'; e.setAttribute('aria-hidden', 'true');
+  e.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + sw + '" stroke-linecap="round" stroke-linejoin="round">' + ICONS[name] + '</svg>';
+  return e;
+}
 
 /* ---------- Données ---------- */
-const defaults = () => ({ v: 2, started: false, items: [], dishes: [], plan: {}, stats: {}, sessions: 0, lastBackup: '', prefs: { size: 1, theme: 'rose' } });
+const defaults = () => ({ v: 2, started: false, items: [], dishes: [], plan: {}, stats: {}, sessions: 0, lastBackup: '', prefs: { size: 1, theme: 'rose', custom: '#7B5EA7' } });
 
 function normalize(o) {
   const r = Object.assign(defaults(), o || {});
@@ -78,7 +100,6 @@ const parseQty = v => { const n = parseFloat(String(v).replace(',', '.')); retur
 const fmtNum = n => String(r2(n)).replace('.', ',');
 const unitLabel = u => (UNITS.find(x => x[0] === u) || [0, u])[1];
 const fmtQty = i => i.qty == null ? '' : fmtNum(i.qty) + (i.unit ? ' ' + unitLabel(i.unit) : '');
-const emojiOf = name => { const n = norm(name) + ' '; const f = EMOJIS.find(([k]) => n.includes(k)); return f ? f[1] : '🛒'; };
 function unitSelect(val) {
   const s = h('select', { 'aria-label': 'Unité' }, UNITS.map(([v, l]) => h('option', { value: v }, l)));
   s.value = val || ''; return s;
@@ -228,10 +249,20 @@ function restoreButton(text, cls, ask) {
 }
 
 /* ---------- Apparence ---------- */
+// Couleur au choix : on assombrit la couleur choisie pour que le texte blanc reste lisible.
+function customTheme(hex) {
+  const n = parseInt(hex.slice(1), 16), rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  const lum = c => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const toHex = c => '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+  let k = 0.85;
+  while (k > 0.25 && 1.05 / (lum(rgb.map(v => v * k)) + 0.05) < 4.5) k -= 0.04;
+  return [toHex(rgb.map(v => v * k)), hex, toHex(rgb.map(v => v * 0.12 + 255 * 0.88))];
+}
 function applyPrefs() {
-  const t = THEMES[S.prefs.theme] || THEMES.rose, r = document.documentElement;
+  const p = S.prefs, r = document.documentElement;
+  const t = p.theme === 'perso' && /^#[0-9a-f]{6}$/i.test(p.custom || '') ? customTheme(p.custom) : (THEMES[p.theme] || THEMES.rose);
   r.style.setProperty('--g', t[0]); r.style.setProperty('--g1', t[1]); r.style.setProperty('--g2', t[2]);
-  r.style.fontSize = [15, 17, 19][S.prefs.size] + 'px';
+  r.style.fontSize = [15, 17, 19][p.size] + 'px';
   const m = $('meta[name=theme-color]'); if (m) m.content = t[0];
 }
 
@@ -240,18 +271,19 @@ const page = (title, ...kids) => h('div', {}, h('div', { class: 'hdr' }, h('h1',
 
 function render() {
   const app = $('#app'); app.replaceChildren();
+  document.body.dataset.view = (isEmpty() && !S.started) ? 'accueil' : view;
   document.querySelectorAll('.tabs,.foot').forEach(t => t.remove());
   if (isEmpty() && !S.started) { app.append(viewWelcome()); return; }
   app.append(namesList());
   app.append(view === 'courses' ? viewCourses() : view === 'semaine' ? viewWeek() : view === 'plats' ? viewDishes() : viewSettings());
-  document.body.append(h('nav', { class: 'tabs' }, [['courses', '🛒', 'Courses'], ['semaine', '📅', 'Semaine'], ['plats', '🍽️', 'Plats'], ['reglages', '⚙️', 'Réglages']]
-    .map(([k, i, l]) => h('button', { class: view === k ? 'on' : '', onclick: () => { view = k; render(); window.scrollTo(0, 0); } }, h('span', {}, i), l))));
+  document.body.append(h('nav', { class: 'tabs' }, [['courses', 'shopping-cart', 'Courses'], ['semaine', 'calendar-days', 'Semaine'], ['plats', 'utensils', 'Plats'], ['reglages', 'settings', 'Réglages']]
+    .map(([k, i, l]) => h('button', { class: view === k ? 'on' : '', onclick: () => { view = k; render(); window.scrollTo(0, 0); } }, ic(i, 24, view === k ? 2.3 : 1.8), l))));
   armAutoBackup();
 }
 
 function viewWelcome() {
   return h('div', { class: 'center pg' },
-    h('div', { class: 'big' }, '🛒'), h('h1', { style: 'margin:0 0 10px' }, 'Mes courses'),
+    h('div', { class: 'big' }, ic('shopping-basket', 64, 1.6)), h('h1', { style: 'margin:0 0 10px' }, 'Mes courses'),
     h('p', { class: 'hint' }, 'Votre liste de courses et vos menus de la semaine, directement sur le téléphone.'),
     h('button', { class: 'btn', onclick: () => { S.started = true; save(); render(); } }, 'Commencer'),
     restoreButton('Restaurer une sauvegarde', 'ghost', false),
@@ -277,16 +309,16 @@ function viewCourses() {
 
   const tog = i => { i.checked = !i.checked; i.checkedAt = i.checked ? stamp() : null; save(); render(); };
   const row = i => h('li', { class: 'row' + (i.checked ? ' done' : '') },
-    h('button', { class: 'tick', 'aria-label': i.checked ? 'Décocher ' + i.name : 'Cocher ' + i.name, onclick: () => tog(i) }, i.checked ? '✓' : ''),
+    h('button', { class: 'tick', 'aria-label': i.checked ? 'Décocher ' + i.name : 'Cocher ' + i.name, onclick: () => tog(i) }, i.checked ? ic('check', 18, 3) : null),
     h('div', { class: 'rbody', onclick: () => itemSheet(i) }, h('span', { class: 'nm' }, i.name), h('span', { class: 'q' }, fmtQty(i))));
 
   const ordered = S.sessions > 0 && todo.some(i => rankOf(i) != null);
   const body = [
     h('p', { class: 'cap' }, (ordered ? 'Classée dans votre ordre habituel · ' : '') + 'touchez un article pour le modifier'),
-    h('div', { class: 'addform' }, nameI, qtyI, unitS, h('button', { class: 'btn plus', onclick: add, 'aria-label': 'Ajouter' }, '+')),
-    habits.length ? h('div', { class: 'chipsrow' }, habits.map(st => h('button', { class: 'hab', onclick: () => { addToList(st.name, st.qty == null ? null : st.qty, st.unit); save(); render(); } }, emojiOf(st.name) + ' ' + st.name))) : null,
+    h('div', { class: 'addform' }, nameI, qtyI, unitS, h('button', { class: 'btn plus', onclick: add, 'aria-label': 'Ajouter' }, ic('plus', 24))),
+    habits.length ? h('div', { class: 'chipsrow' }, habits.map(st => h('button', { class: 'hab', onclick: () => { addToList(st.name, st.qty == null ? null : st.qty, st.unit); save(); render(); } }, ic('plus', 16, 2.4), st.name))) : null,
     todo.length ? h('div', {}, h('div', { class: 'sec' }, 'À acheter (' + todo.length + ')'), h('ul', { class: 'l' }, todo.map(row)))
-      : h('p', { class: 'hint', style: 'margin-top:14px' }, S.items.length ? 'Tout est dans le panier. 🎉' : 'Votre liste est vide. Ajoutez un produit ci-dessus, ou générez la liste depuis l’onglet Semaine.'),
+      : h('p', { class: 'hint', style: 'margin-top:14px' }, S.items.length ? 'Tout est dans le panier.' : 'Votre liste est vide. Ajoutez un produit ci-dessus, ou générez la liste depuis l’onglet Semaine.'),
     done.length ? h('div', {}, h('div', { class: 'sec' }, 'Dans le panier (' + done.length + ')'), h('ul', { class: 'l' }, done.map(row))) : null,
     h('div', { style: 'height:70px' })
   ];
@@ -309,9 +341,9 @@ function itemSheet(it) {
       const rest = r2(q - taken);
       box.replaceChildren(h('b', {}, 'J’en ai pris moins ?'),
         h('div', { class: 'stepper' },
-          h('button', { 'aria-label': 'Moins', onclick: () => { taken = Math.max(0, r2(taken - stepSize())); drawBox(); } }, '−'),
+          h('button', { 'aria-label': 'Moins', onclick: () => { taken = Math.max(0, r2(taken - stepSize())); drawBox(); } }, ic('minus', 20)),
           h('b', {}, fmtNum(taken)),
-          h('button', { 'aria-label': 'Plus', onclick: () => { taken = Math.min(q, r2(taken + stepSize())); drawBox(); } }, '+'),
+          h('button', { 'aria-label': 'Plus', onclick: () => { taken = Math.min(q, r2(taken + stepSize())); drawBox(); } }, ic('plus', 20)),
           h('span', { class: 'hint' }, 'sur ' + fmtNum(q))),
         h('span', { class: 'hint' }, taken > 0 && taken < q ? 'Les ' + fmtNum(taken) + ' pris sont cochés. Il en reste ' + fmtNum(rest) + ' dans la liste pour la prochaine fois.' : taken === 0 ? 'Rien de pris pour l’instant.' : 'Touchez − si vous en avez pris moins.'));
     };
@@ -339,8 +371,8 @@ function finishSheet() {
   const done = S.items.filter(i => i.checked), rest = S.items.length - done.length;
   openSheet((sh, close) => {
     sh.append(h('h2', {}, 'Terminer les courses ?'),
-      h('p', {}, '🧺 ', h('b', {}, done.length + (done.length > 1 ? ' articles cochés' : ' article coché')), ' ' + (done.length > 1 ? 'sont rangés.' : 'est rangé.')),
-      h('p', {}, '📝 ', h('b', {}, rest + (rest > 1 ? ' articles' : ' article')), ' ' + (rest > 1 ? 'restent' : 'reste') + ' dans la liste pour la prochaine fois.'),
+      h('p', {}, h('b', {}, done.length + (done.length > 1 ? ' articles cochés' : ' article coché')), ' ' + (done.length > 1 ? 'sont rangés.' : 'est rangé.')),
+      h('p', {}, h('b', {}, rest + (rest > 1 ? ' articles' : ' article')), ' ' + (rest > 1 ? 'restent' : 'reste') + ' dans la liste pour la prochaine fois.'),
       h('p', { class: 'hint' }, 'Votre ordre habituel de magasin est mis à jour avec cette sortie.'),
       h('button', { class: 'btn', onclick: () => { recordPurchases(done); S.items = S.items.filter(i => !i.checked); save(); close(); render(); toast('Courses terminées'); } }, 'Terminer les courses'),
       h('button', { class: 'btn link', onclick: close }, 'Pas encore'));
@@ -354,9 +386,9 @@ function viewWeek() {
   const label = 'Semaine du ' + weekStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
   const body = [
     h('div', { class: 'weeknav' },
-      h('button', { 'aria-label': 'Semaine précédente', onclick: () => { weekStart = addDays(weekStart, -7); render(); } }, '‹'),
+      h('button', { 'aria-label': 'Semaine précédente', onclick: () => { weekStart = addDays(weekStart, -7); render(); } }, ic('chevron-left', 22)),
       h('div', { class: 'mid' }, label),
-      h('button', { 'aria-label': 'Semaine suivante', onclick: () => { weekStart = addDays(weekStart, 7); render(); } }, '›')),
+      h('button', { 'aria-label': 'Semaine suivante', onclick: () => { weekStart = addDays(weekStart, 7); render(); } }, ic('chevron-right', 22))),
     +weekStart !== +monday(new Date()) ? h('button', { class: 'btn link', style: 'margin:0 0 6px', onclick: () => { weekStart = monday(new Date()); render(); } }, 'Revenir à cette semaine') : null,
     h('button', { class: 'btn' + (n ? '' : ' ghost'), style: 'margin:0 0 12px', onclick: genSheet }, n ? 'Générer la liste · ' + n + (n > 1 ? ' nouveaux repas' : ' nouveau repas') : 'Générer la liste de courses'),
     days.map(d => {
@@ -367,7 +399,7 @@ function viewWeek() {
           h('button', { class: 'x', 'aria-label': 'Retirer ce repas', onclick: () => {
             const idx = S.plan[k].indexOf(m); S.plan[k].splice(idx, 1); if (!S.plan[k].length) delete S.plan[k]; save(); render();
             toast('Repas retiré', 'Annuler', () => { (S.plan[k] = S.plan[k] || []).push(m); save(); render(); });
-          } }, '✕'))));
+          } }, ic('x', 18)))));
     }), h('div', { style: 'height:10px' })];
   return page('Menus de la semaine', body);
 }
@@ -398,7 +430,7 @@ function mealSheet(dayIso, dayDate, meal) {
         const lbl = partLabel(p) + '';
         return h('span', { class: 'sp', onclick: () => { if (p.t === 'ing') { editIdx = i; drawQty(); } } },
           lbl, p.t === 'ing' && p.qty != null ? h('i', {}, '· ' + fmtQty(p)) : null,
-          h('b', { 'aria-label': 'Retirer', onclick: e => { e.stopPropagation(); parts.splice(i, 1); editIdx = null; drawQty(); drawPills(); refreshBtn(); } }, '✕'));
+          h('b', { 'aria-label': 'Retirer', onclick: e => { e.stopPropagation(); parts.splice(i, 1); editIdx = null; drawQty(); drawPills(); refreshBtn(); } }, ic('x', 14, 2.4)));
       }));
       refreshBtn();
     };
@@ -410,7 +442,7 @@ function mealSheet(dayIso, dayDate, meal) {
       if (p.t === 'ing' && parts.some(x => x.t === 'ing' && stem(x.name) === stem(p.name))) { toast('Cet ingrédient est déjà dans le repas'); return; }
       parts.push(Object.assign({ inList: false }, p)); q.value = ''; drawResults(); drawPills();
     };
-    const opt = (kind, label, onclick) => h('div', { class: 'opt', onclick }, h('span', { class: 'k ' + kind[0] }, kind[1]), label, h('span', { class: 'pl' }, '+'));
+    const opt = (kind, label, onclick) => h('div', { class: 'opt', onclick }, h('span', { class: 'k ' + kind[0] }, kind[1]), label, h('span', { class: 'pl' }, ic('plus', 20, 2.4)));
     const drawResults = () => {
       const f = norm(q.value), raw = q.value.trim();
       const ds = S.dishes.filter(d => !f || norm(d.name).includes(f)).sort(byName).slice(0, f ? 20 : 4);
@@ -468,7 +500,7 @@ function genSheet() {
       const rows = arr.map(e => {
         const tick = h('button', { class: 'tick', 'aria-label': e.name });
         const row = h('div', { class: 'gen' }, tick, h('span', { class: 'nm' }, e.name), h('span', { class: 'q' }, fmtQty(e)));
-        const paint = () => { tick.className = 'tick' + (e.on ? ' on' : ''); tick.textContent = e.on ? '✓' : ''; row.classList.toggle('off', !e.on); };
+        const paint = () => { tick.className = 'tick' + (e.on ? ' on' : ''); tick.replaceChildren(...(e.on ? [ic('check', 18, 3)] : [])); row.classList.toggle('off', !e.on); };
         row.addEventListener('click', () => { e.on = !e.on; paint(); upd(); }); paint(); return row;
       });
       btn.addEventListener('click', () => {
@@ -513,7 +545,7 @@ function dishSheet(dish, onSaved) {
     let dup = null;
     const checkDup = () => {
       dup = similarDish(nameI.value, d.id);
-      warn.replaceChildren(...(dup ? [h('div', { class: 'warn' }, '⚠️ Un plat ressemble à celui-ci : ', h('b', {}, dup.name), h('br'),
+      warn.replaceChildren(...(dup ? [h('div', { class: 'warn' }, ic('triangle-alert', 18), ' Un plat ressemble à celui-ci : ', h('b', {}, dup.name), h('br'),
         h('button', { onclick: () => { const t = dup; close(); dishSheet(t); } }, 'Ouvrir ce plat →'))] : []));
       saveBtn.textContent = dup ? 'Enregistrer quand même' : 'Enregistrer';
     };
@@ -523,7 +555,7 @@ function dishSheet(dish, onSaved) {
       const n = h('input', { type: 'text', value: g.name, placeholder: 'Ingrédient', list: 'names', autocomplete: 'off', oninput: e => { g.name = e.target.value; } });
       const qi = h('input', { type: 'text', inputmode: 'decimal', value: g.qty == null ? '' : fmtNum(g.qty), placeholder: 'Qté', 'aria-label': 'Quantité', oninput: e => { g.qty = parseQty(e.target.value); } });
       const u = unitSelect(g.unit); u.addEventListener('change', () => { g.unit = u.value; });
-      return h('div', { class: 'ing' }, n, qi, u, h('button', { class: 'x', 'aria-label': 'Retirer', onclick: () => { d.ingredients = d.ingredients.filter(x => x !== g); if (!d.ingredients.length) d.ingredients.push({ name: '', qty: null, unit: '' }); draw(); } }, '✕'));
+      return h('div', { class: 'ing' }, n, qi, u, h('button', { class: 'x', 'aria-label': 'Retirer', onclick: () => { d.ingredients = d.ingredients.filter(x => x !== g); if (!d.ingredients.length) d.ingredients.push({ name: '', qty: null, unit: '' }); draw(); } }, ic('x', 18)));
     }));
     draw();
     saveBtn.addEventListener('click', () => {
@@ -546,6 +578,13 @@ function dishSheet(dish, onSaved) {
 }
 
 /* ----- Réglages ----- */
+function customDot() {
+  const on = S.prefs.theme === 'perso';
+  const inp = h('input', { type: 'color', value: S.prefs.custom || '#7B5EA7', 'aria-label': 'Choisir une couleur',
+    oninput: e => { S.prefs.theme = 'perso'; S.prefs.custom = e.target.value; applyPrefs(); },
+    onchange: e => { S.prefs.theme = 'perso'; S.prefs.custom = e.target.value; save(); applyPrefs(); render(); } });
+  return h('label', { class: 'dot-custom' + (on ? ' on' : ''), style: on ? 'background:' + S.prefs.custom : '' }, inp);
+}
 function viewSettings() {
   const last = S.lastBackup ? cap1(new Date(S.lastBackup + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })) : 'aucune';
   const ranked = Object.values(S.stats).filter(st => st.pos != null).length;
@@ -564,7 +603,8 @@ function viewSettings() {
       h('div', { class: 'hint' }, 'Taille du texte'),
       h('div', { class: 'sizes' }, [14, 17, 21].map((px, i) => h('button', { class: S.prefs.size === i ? 'on' : '', style: 'font-size:' + px + 'px', 'aria-label': 'Taille ' + (i + 1), onclick: () => { S.prefs.size = i; save(); applyPrefs(); render(); } }, 'A'))),
       h('div', { class: 'hint' }, 'Couleur'),
-      h('div', { class: 'dots' }, Object.keys(THEMES).map(k => h('button', { class: S.prefs.theme === k ? 'on' : '', style: 'background:' + THEMES[k][0], 'aria-label': k, onclick: () => { S.prefs.theme = k; save(); applyPrefs(); render(); } })))),
+      h('div', { class: 'dots' }, Object.keys(THEMES).map(k => h('button', { class: S.prefs.theme === k ? 'on' : '', style: 'background:linear-gradient(135deg,' + THEMES[k][0] + ',' + THEMES[k][1] + ')', 'aria-label': k, onclick: () => { S.prefs.theme = k; save(); applyPrefs(); render(); } })), customDot()),
+      h('p', { class: 'hint', style: 'margin:8px 0 0' }, 'La dernière pastille ouvre un sélecteur : choisissez la couleur de votre choix.')),
     h('div', { class: 'card' }, h('h2', {}, 'Ordre du magasin'),
       h('p', { class: 'hint' }, S.sessions ? 'Appris sur ' + S.sessions + ' sortie' + (S.sessions > 1 ? 's' : '') + ' · ' + ranked + ' produit' + (ranked > 1 ? 's' : '') + ' classé' + (ranked > 1 ? 's' : '') : 'Pas encore appris : cochez vos articles au fil du magasin, puis touchez « Terminer les courses ».'),
       S.sessions ? reset : null),

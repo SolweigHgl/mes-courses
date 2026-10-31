@@ -2,13 +2,19 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
 const UNITS = [['', 'unité'], ['g', 'g'], ['kg', 'kg'], ['ml', 'ml'], ['cl', 'cl'], ['l', 'L'], ['bouquet', 'bouquet'], ['boîte', 'boîte'], ['sachet', 'sachet'], ['paquet', 'paquet'], ['pot', 'pot'], ['tranche', 'tranche']];
 const SLOTS = ['Petit-déjeuner', 'Brunch', 'Apéro', 'Midi', 'Goûter', 'Dîner'];
-const THEMES = { rose: ['#D92A63', '#EC5E8C', '#FBE6EF'], vert: ['#2F7D4F', '#4AA673', '#E3F0E8'], orange: ['#B05400', '#FF7F00', '#FFF0DE'], turquoise: ['#1A8A7C', '#4CC4B0', '#DFF4F0'], taupe: ['#756559', '#A08F82', '#EEE8E2'] };
+const THEMES = {
+  rose:      { g: '#D92A63', g1: '#EC5E8C', g2: '#FBE6EF', gb: '#F6D3E1', b1: '#D92A63', b2: '#EC5E8C', bt: '#FFFFFF' },
+  vert:      { g: '#2F7D4F', g1: '#4AA673', g2: '#E3F0E8', gb: '#CFE3D6', b1: '#2F7D4F', b2: '#4AA673', bt: '#FFFFFF' },
+  orange:    { g: '#B05400', g1: '#FF7F00', g2: '#FFF0DE', gb: '#F7D9B5', b1: '#FF7F00', b2: '#FF9D3D', bt: '#3A1D00' },
+  turquoise: { g: '#0F8299', g1: '#6BD8EC', g2: '#E3F7FB', gb: '#BFEAF2', b1: '#58CBE2', b2: '#86E2F1', bt: '#0B3340' },
+  taupe:     { g: '#756559', g1: '#A08F82', g2: '#EEE8E2', gb: '#DDD3CA', b1: '#756559', b2: '#A08F82', bt: '#FFFFFF' }
+};
 
 
 /* ---------- Icônes ----------
@@ -34,7 +40,7 @@ function ic(name, size = 20, sw = 2) {
 }
 
 /* ---------- Données ---------- */
-const defaults = () => ({ v: 2, started: false, items: [], dishes: [], plan: {}, stats: {}, sessions: 0, lastBackup: '', prefs: { size: 1, theme: 'rose', custom: '#7B5EA7' } });
+const defaults = () => ({ v: 2, rev: 0, backedRev: 0, started: false, items: [], dishes: [], plan: {}, stats: {}, sessions: 0, lastBackup: '', prefs: { size: 1, theme: 'rose', custom: '#7B5EA7' } });
 
 function normalize(o) {
   const r = Object.assign(defaults(), o || {});
@@ -57,6 +63,7 @@ function load() {
   return normalize({});
 }
 function save() {
+  S.rev = (S.rev || 0) + 1; // numéro de modification : sert à savoir s'il reste du travail non sauvegardé
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Enregistrement impossible'); }
 }
 let S = load();
@@ -65,6 +72,8 @@ let weekStart = monday(new Date());
 let dishQuery = '';
 
 const isEmpty = () => !S.items.length && !S.dishes.length && !Object.keys(S.plan).length;
+const isDirty = () => !isEmpty() && S.rev !== S.backedRev;
+function refreshBadge() { const b = $('.tabs .badge'); if (b) b.style.display = isDirty() ? 'block' : 'none'; }
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 const dishById = id => S.dishes.find(d => d.id === id);
 let lastStamp = 0;
@@ -213,21 +222,22 @@ function weekMeals() {
 
 /* ---------- Sauvegarde ---------- */
 function doBackup(manual) {
-  S.lastBackup = iso(new Date()); save();
+  S.lastBackup = iso(new Date()); S.backedRev = (S.rev || 0) + 1; save();
   const blob = new Blob([JSON.stringify({ app: 'mes-courses', date: new Date().toISOString(), data: S }, null, 1)], { type: 'application/json' });
   const a = h('a', { href: URL.createObjectURL(blob), download: 'courses-sauvegarde-' + iso(new Date()) + '.json' });
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
   toast(manual ? 'Sauvegarde enregistrée dans Téléchargements' : 'Sauvegarde du jour enregistrée (Téléchargements)');
+  refreshBadge();
   if (view === 'reglages') render();
 }
 let armed = false;
 function armAutoBackup() {
-  if (armed || isEmpty() || S.lastBackup === iso(new Date())) return;
+  if (armed || !isDirty() || S.lastBackup === iso(new Date())) return;
   armed = true;
   const fire = () => {
     document.removeEventListener('pointerup', fire); armed = false;
-    setTimeout(() => { if (!isEmpty() && S.lastBackup !== iso(new Date())) doBackup(false); }, 1200);
+    setTimeout(() => { if (isDirty() && S.lastBackup !== iso(new Date())) doBackup(false); }, 1200);
   };
   document.addEventListener('pointerup', fire);
 }
@@ -253,17 +263,20 @@ function restoreButton(text, cls, ask) {
 function customTheme(hex) {
   const n = parseInt(hex.slice(1), 16), rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   const lum = c => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
-  const toHex = c => '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
-  let k = 0.85;
-  while (k > 0.25 && 1.05 / (lum(rgb.map(v => v * k)) + 0.05) < 4.5) k -= 0.04;
-  return [toHex(rgb.map(v => v * k)), hex, toHex(rgb.map(v => v * 0.12 + 255 * 0.88))];
+  const toHex = c => '#' + c.map(v => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, '0')).join('');
+  const contrast = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  const light = rgb.map(v => v + (255 - v) * 0.2);                       // boutons : la couleur choisie, un peu éclaircie
+  const mid = rgb.map((v, i) => (v + light[i]) / 2), L = lum(mid);
+  const bt = contrast(1, L) >= contrast(L, lum([29, 37, 33])) ? '#FFFFFF' : '#1D2521'; // texte blanc ou foncé, le plus lisible
+  let k = 1;                                                              // accent : la couleur assombrie jusqu'à être lisible sur fond blanc
+  while (k > 0.25 && contrast(1, lum(rgb.map(v => v * k))) < 4.5) k -= 0.04;
+  return { g: toHex(rgb.map(v => v * k)), g1: hex, g2: toHex(rgb.map(v => v * 0.12 + 255 * 0.88)), gb: toHex(rgb.map(v => v * 0.3 + 255 * 0.7)), b1: hex, b2: toHex(light), bt };
 }
+const themeOf = p => (p.theme === 'perso' && /^#[0-9a-f]{6}$/i.test(p.custom || '') ? customTheme(p.custom) : (THEMES[p.theme] || THEMES.rose));
 function applyPrefs() {
-  const p = S.prefs, r = document.documentElement;
-  const t = p.theme === 'perso' && /^#[0-9a-f]{6}$/i.test(p.custom || '') ? customTheme(p.custom) : (THEMES[p.theme] || THEMES.rose);
-  r.style.setProperty('--g', t[0]); r.style.setProperty('--g1', t[1]); r.style.setProperty('--g2', t[2]);
+  const p = S.prefs, r = document.documentElement, t = themeOf(p);
+  ['g', 'g1', 'g2', 'gb', 'b1', 'b2', 'bt'].forEach(k => r.style.setProperty('--' + k, t[k]));
   r.style.fontSize = [15, 17, 19][p.size] + 'px';
-  const m = $('meta[name=theme-color]'); if (m) m.content = t[0];
 }
 
 /* ---------- Affichage ---------- */
@@ -277,7 +290,8 @@ function render() {
   app.append(namesList());
   app.append(view === 'courses' ? viewCourses() : view === 'semaine' ? viewWeek() : view === 'plats' ? viewDishes() : viewSettings());
   document.body.append(h('nav', { class: 'tabs' }, [['courses', 'shopping-cart', 'Courses'], ['semaine', 'calendar-days', 'Semaine'], ['plats', 'utensils', 'Plats'], ['reglages', 'settings', 'Réglages']]
-    .map(([k, i, l]) => h('button', { class: view === k ? 'on' : '', onclick: () => { view = k; render(); window.scrollTo(0, 0); } }, ic(i, 24, view === k ? 2.3 : 1.8), l))));
+    .map(([k, i, l]) => h('button', { class: view === k ? 'on' : '', onclick: () => { view = k; render(); window.scrollTo(0, 0); } }, ic(i, 24, view === k ? 2.3 : 1.8), l, k === 'reglages' ? h('i', { class: 'badge', 'aria-label': 'Modifications non sauvegardées' }) : null))));
+  refreshBadge();
   armAutoBackup();
 }
 
@@ -583,7 +597,7 @@ function customDot() {
   const inp = h('input', { type: 'color', value: S.prefs.custom || '#7B5EA7', 'aria-label': 'Choisir une couleur',
     oninput: e => { S.prefs.theme = 'perso'; S.prefs.custom = e.target.value; applyPrefs(); },
     onchange: e => { S.prefs.theme = 'perso'; S.prefs.custom = e.target.value; save(); applyPrefs(); render(); } });
-  return h('label', { class: 'dot-custom' + (on ? ' on' : ''), style: on ? 'background:' + S.prefs.custom : '' }, inp);
+  return h('label', { class: 'dot-custom' + (on ? ' on' : ''), style: on ? 'background:linear-gradient(135deg,' + themeOf(S.prefs).b1 + ',' + themeOf(S.prefs).b2 + ')' : '' }, inp);
 }
 function viewSettings() {
   const last = S.lastBackup ? cap1(new Date(S.lastBackup + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })) : 'aucune';
@@ -594,8 +608,9 @@ function viewSettings() {
   } }, 'Réinitialiser l’ordre');
   return page('Réglages',
     h('div', { class: 'card' }, h('h2', {}, 'Sauvegarde'),
-      h('p', { class: 'hint' }, 'Une sauvegarde est enregistrée automatiquement une fois par jour, à la première utilisation, dans le dossier Téléchargements du téléphone.'),
+      h('p', { class: 'hint' }, 'Une sauvegarde est enregistrée automatiquement au plus une fois par jour (à la première utilisation, si vous avez modifié quelque chose), dans le dossier Téléchargements.'),
       h('p', {}, 'Dernière sauvegarde : ', h('b', {}, last)),
+      isDirty() ? h('p', { class: 'unsaved' }, ic('triangle-alert', 18), ' Des modifications ne sont pas encore sauvegardées. Touchez « Sauvegarder maintenant » avant de nettoyer le navigateur.') : h('p', { class: 'hint' }, 'Tout est sauvegardé.'),
       h('button', { class: 'btn', onclick: () => doBackup(true) }, 'Sauvegarder maintenant'),
       restoreButton('Restaurer une sauvegarde', 'ghost', true),
       h('p', { class: 'hint', style: 'margin-top:12px' }, 'Après avoir nettoyé le navigateur, touchez « Restaurer » et choisissez le fichier le plus récent.')),
@@ -603,7 +618,7 @@ function viewSettings() {
       h('div', { class: 'hint' }, 'Taille du texte'),
       h('div', { class: 'sizes' }, [14, 17, 21].map((px, i) => h('button', { class: S.prefs.size === i ? 'on' : '', style: 'font-size:' + px + 'px', 'aria-label': 'Taille ' + (i + 1), onclick: () => { S.prefs.size = i; save(); applyPrefs(); render(); } }, 'A'))),
       h('div', { class: 'hint' }, 'Couleur'),
-      h('div', { class: 'dots' }, Object.keys(THEMES).map(k => h('button', { class: S.prefs.theme === k ? 'on' : '', style: 'background:linear-gradient(135deg,' + THEMES[k][0] + ',' + THEMES[k][1] + ')', 'aria-label': k, onclick: () => { S.prefs.theme = k; save(); applyPrefs(); render(); } })), customDot()),
+      h('div', { class: 'dots' }, Object.keys(THEMES).map(k => h('button', { class: S.prefs.theme === k ? 'on' : '', style: 'background:linear-gradient(135deg,' + THEMES[k].b1 + ',' + THEMES[k].b2 + ')', 'aria-label': k, onclick: () => { S.prefs.theme = k; save(); applyPrefs(); render(); } })), customDot()),
       h('p', { class: 'hint', style: 'margin:8px 0 0' }, 'La dernière pastille ouvre un sélecteur : choisissez la couleur de votre choix.')),
     h('div', { class: 'card' }, h('h2', {}, 'Ordre du magasin'),
       h('p', { class: 'hint' }, S.sessions ? 'Appris sur ' + S.sessions + ' sortie' + (S.sessions > 1 ? 's' : '') + ' · ' + ranked + ' produit' + (ranked > 1 ? 's' : '') + ' classé' + (ranked > 1 ? 's' : '') : 'Pas encore appris : cochez vos articles au fil du magasin, puis touchez « Terminer les courses ».'),
@@ -617,5 +632,13 @@ render();
 document.addEventListener('visibilitychange', () => { if (!document.hidden) armAutoBackup(); });
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  // Quand une nouvelle version prend le relais, on recharge la page (ou on propose de le faire).
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) return; // première installation : rien à recharger
+    const typing = document.activeElement && document.activeElement.matches && document.activeElement.matches('input,select');
+    if (!sheetStack.length && !typing) location.reload();
+    else toast('Nouvelle version disponible', 'Actualiser', () => location.reload());
+  });
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }

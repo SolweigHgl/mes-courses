@@ -1,7 +1,7 @@
 /* ===== Mes courses — feuille de style =====
    Les couleurs principales (--g, --g1, --g2) sont changées par le thème choisi dans Réglages. */
 :root{
-  --g:#D92A63; --g1:#EC5E8C; --g2:#FBE6EF; --gb:#F6D3E1;
+  --g:#D92A63; --g1:#EC5E8C; --g2:#FBE6EF; --gb:#F6D3E1; --b1:#D92A63; --b2:#EC5E8C; --bt:#FFFFFF;
   --cream:#F2EEE5; --teal:#59C4B4; --o:#E28A42; --o2:#FDEFE0;
   --bg:#ffffff; --c:#ffffff; --t:#1d2521; --m:#68736c; --l:#EFE8DE; --r:#c0392b;
   --sa:env(safe-area-inset-bottom,0px); --st:env(safe-area-inset-top,0px);
@@ -24,7 +24,7 @@ h2{font-size:1.15rem;margin:0 0 10px}
 /* Champs et boutons */
 input,select{width:100%;min-height:46px;padding:8px 12px;border:1.5px solid var(--l);border-radius:12px;background:var(--c);box-shadow:inset 0 1px 2px rgba(90,50,60,.05)}
 input:focus,select:focus{outline:2px solid var(--g);border-color:var(--g)}
-.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;padding:8px 14px;margin-top:10px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--g),var(--g1));color:#fff;font-weight:600;text-align:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;padding:8px 14px;margin-top:10px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--b1),var(--b2));color:var(--bt);font-weight:600;text-align:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .btn.ghost{background:linear-gradient(135deg,var(--g2),#fff);color:var(--g);box-shadow:none;border:1px solid var(--gb)}
 .btn.link{background:none;box-shadow:none;color:var(--m);font-weight:400}
 .btn.danger{background:none;box-shadow:none;color:var(--r)}
@@ -45,8 +45,8 @@ label.btn input{display:none}
 ul.l{list-style:none;margin:0;padding:0;border:1px solid var(--l);border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(90,50,60,.07)}
 .row{display:flex;align-items:center;gap:10px;min-height:54px;padding:3px 12px 3px 8px;background:var(--c);border-bottom:1px solid var(--l)}
 .row:last-child{border-bottom:0}
-.tick{flex:none;width:32px;height:32px;border-radius:50%;border:2px solid var(--g);background:transparent;color:#fff;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
-.tick.on,.row.done .tick{background:linear-gradient(135deg,var(--g),var(--g1))}
+.tick{flex:none;width:32px;height:32px;border-radius:50%;border:2px solid var(--g);background:transparent;color:var(--bt);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+.tick.on,.row.done .tick{background:linear-gradient(135deg,var(--b1),var(--b2))}
 .rbody{flex:1;min-width:0;display:flex;align-items:center;gap:8px;align-self:stretch;cursor:pointer}
 .nm{flex:1;min-width:0;overflow-wrap:anywhere;padding:8px 0}
 .q{flex:none;color:var(--m);font-size:.88rem}
@@ -91,7 +91,7 @@ ul.l{list-style:none;margin:0;padding:0;border:1px solid var(--l);border-radius:
 .pill{display:inline-block;background:var(--o2);color:#b3680f;font-weight:700;font-size:.8rem;border-radius:10px;padding:5px 9px;margin:0 6px 8px 0}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .chip{border:1.5px solid var(--l);background:var(--c);border-radius:18px;min-height:40px;padding:0 12px;cursor:pointer}
-.chip.on{background:linear-gradient(135deg,var(--g),var(--g1));border-color:var(--g);color:#fff}
+.chip.on{background:linear-gradient(135deg,var(--b1),var(--b2));border-color:var(--g);color:var(--bt)}
 .sp{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--g2),#fff);color:var(--g);border:1px solid var(--gb);border-radius:18px;padding:6px 6px 6px 12px;font-weight:600;margin:0 6px 6px 0;cursor:pointer}
 .sp i{font-style:normal;font-weight:400;color:var(--m)}
 .sp b{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;color:var(--m)}
@@ -135,3 +135,9 @@ body[data-view="semaine"] .btn.ghost{background:#fff}
 .dot-custom.on{outline:3px solid var(--t);outline-offset:2px}
 .dot-custom input{position:absolute;inset:0;width:100%;height:100%;min-height:0;opacity:0;cursor:pointer;padding:0;border:0}
 .dots{flex-wrap:wrap}
+
+/* Pastille « modifications non sauvegardées » et message associé */
+.tabs button{position:relative}
+.badge{position:absolute;top:9px;left:calc(50% + 8px);width:11px;height:11px;border-radius:50%;background:#FF7F00;border:2px solid #fff;display:none}
+.unsaved{display:flex;gap:8px;align-items:flex-start;background:var(--o2);border:1.5px solid #f0c98f;color:#7a4a0a;border-radius:12px;padding:10px 12px;font-size:.88rem}
+.unsaved .ic{margin-top:2px}

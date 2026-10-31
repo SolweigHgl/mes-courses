@@ -1,11 +1,16 @@
 // Service worker : permet d'ouvrir l'application sans réseau.
-// IMPORTANT : à chaque mise à jour des fichiers, changez le numéro ci-dessous (v1 -> v2 -> v3…)
-// pour que les téléphones récupèrent la nouvelle version.
-const CACHE = 'mes-courses-v3';
+// À chaque mise à jour des fichiers, changez le numéro ci-dessous (v4 -> v5 -> v6…).
+const CACHE = 'mes-courses-v5';
 const FILES = ['./', 'index.html', 'style.css', 'app.js', 'manifest.json', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
+// À l'installation, on télécharge chaque fichier en ignorant la mémoire du navigateur et de GitHub,
+// pour être sûr d'enregistrer la toute dernière version.
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => Promise.all(FILES.map(u => fetch(new Request(u, { cache: 'reload' })).then(r => { if (!r.ok) throw new Error(u); return c.put(u, r); }))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', e => {
@@ -16,12 +21,12 @@ self.addEventListener('activate', e => {
 });
 
 // Affiche tout de suite la version en mémoire (fonctionne sans réseau),
-// puis la met à jour en arrière-plan pour la prochaine ouverture.
+// puis la vérifie et la met à jour en arrière-plan.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(cached => {
-      const net = fetch(e.request).then(res => {
+      const net = fetch(e.request, { cache: 'no-cache' }).then(res => {
         if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
         return res;
       }).catch(() => cached);

@@ -141,3 +141,8 @@ body[data-view="semaine"] .btn.ghost{background:#fff}
 .badge{position:absolute;top:9px;left:calc(50% + 8px);width:11px;height:11px;border-radius:50%;background:#FF7F00;border:2px solid #fff;display:none}
 .unsaved{display:flex;gap:8px;align-items:flex-start;background:var(--o2);border:1.5px solid #f0c98f;color:#7a4a0a;border-radius:12px;padding:10px 12px;font-size:.88rem}
 .unsaved .ic{margin-top:2px}
+
+/* Import de recettes */
+.imp{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;margin-bottom:6px;border:1.5px solid var(--l);border-radius:12px;background:var(--c);cursor:pointer}
+.imp input{flex:none;width:22px;height:22px;margin-top:2px;accent-color:var(--g)}
+.imp small{display:block;color:var(--m)}

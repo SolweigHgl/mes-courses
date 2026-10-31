@@ -1,7 +1,7 @@
 // Service worker : permet d'ouvrir l'application sans réseau.
 // À chaque mise à jour des fichiers, changez le numéro ci-dessous (v4 -> v5 -> v6…).
-const CACHE = 'mes-courses-v5';
-const FILES = ['./', 'index.html', 'style.css', 'app.js', 'manifest.json', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
+const CACHE = 'mes-courses-v6';
+const FILES = ['./', 'index.html', 'style.css', 'app.js', 'recettes.js', 'manifest.json', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
 // À l'installation, on télécharge chaque fichier en ignorant la mémoire du navigateur et de GitHub,
 // pour être sûr d'enregistrer la toute dernière version.

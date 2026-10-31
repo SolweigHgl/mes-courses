@@ -2,7 +2,7 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.3.0';
+const VERSION = '1.4.0';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
@@ -591,6 +591,53 @@ function dishSheet(dish, onSaved) {
   });
 }
 
+/* ----- Import de recettes ----- */
+function importRecipesFile(file) {
+  const r = new FileReader();
+  r.onload = () => {
+    let list;
+    try { list = rcParse(JSON.parse(r.result)); if (!list.length) throw 0; } catch (e) { toast('Fichier non reconnu'); return; }
+    importSheet(list);
+  };
+  r.readAsText(file);
+}
+function importSheet(list) {
+  openSheet((sh, close) => {
+    const rows = list.map(x => {
+      const dup = similarDish(x.name, null);
+      return { x, dup, on: x.ingredients.length >= 2 && !dup };
+    });
+    const btn = h('button', { class: 'btn', style: 'margin-top:14px' });
+    const count = () => rows.filter(r => r.on).length;
+    const refresh = () => { const n = count(); btn.textContent = n ? 'Importer ' + n + ' plat' + (n > 1 ? 's' : '') : 'Aucun plat coché'; btn.disabled = !n; };
+    const line = r => {
+      const cb = h('input', { type: 'checkbox', onchange: e => { r.on = e.target.checked; refresh(); } }); cb.checked = r.on;
+      const n = r.x.ingredients.length;
+      return h('label', { class: 'imp' }, cb, h('span', {}, h('b', {}, r.x.name), h('small', {},
+        n ? n + ' ingrédient' + (n > 1 ? 's' : '') : 'aucun ingrédient détecté', r.dup ? ' · ressemble à « ' + r.dup.name + ' », déjà présent' : '')));
+    };
+    const withIng = rows.filter(r => r.x.ingredients.length), without = rows.filter(r => !r.x.ingredients.length);
+    const setAll = v => { rows.forEach(r => { if (r.x.ingredients.length) r.on = v; }); body.replaceChildren(...build()); refresh(); };
+    const build = () => [
+      h('div', { class: 'sec', style: 'margin:10px 2px 4px' }, 'Plats avec ingrédients (' + withIng.length + ')'),
+      ...withIng.map(line),
+      ...(without.length ? [h('div', { class: 'sec', style: 'margin:14px 2px 4px' }, 'Sans ingrédient détecté (' + without.length + ')'),
+        h('p', { class: 'hint', style: 'margin:0 2px 6px' }, 'Notes sans liste d’ingrédients exploitable : vous pouvez tout de même les importer comme plats vides.'), ...without.map(line)] : [])
+    ];
+    const body = h('div', {}, build());
+    btn.addEventListener('click', () => {
+      const chosen = rows.filter(r => r.on); if (!chosen.length) return;
+      chosen.forEach(r => S.dishes.push({ id: uid(), name: r.x.name, ingredients: r.x.ingredients.map(g => ({ name: g.name, qty: g.qty, unit: g.unit || '' })) }));
+      save(); close(); render(); toast(chosen.length + ' plat' + (chosen.length > 1 ? 's importés' : ' importé'));
+    });
+    sh.append(h('h2', {}, 'Importer des recettes'),
+      h('p', { class: 'hint' }, list.length + ' notes lues. Vérifiez la sélection : vous pourrez corriger chaque plat ensuite.'),
+      h('div', { style: 'display:flex;gap:8px' }, h('button', { class: 'btn ghost', style: 'margin-top:0', onclick: () => setAll(true) }, 'Tout cocher'), h('button', { class: 'btn ghost', style: 'margin-top:0', onclick: () => setAll(false) }, 'Tout décocher')),
+      body, btn, h('button', { class: 'btn link', onclick: close }, 'Annuler'));
+    refresh();
+  });
+}
+
 /* ----- Réglages ----- */
 function customDot() {
   const on = S.prefs.theme === 'perso';
@@ -614,6 +661,9 @@ function viewSettings() {
       h('button', { class: 'btn', onclick: () => doBackup(true) }, 'Sauvegarder maintenant'),
       restoreButton('Restaurer une sauvegarde', 'ghost', true),
       h('p', { class: 'hint', style: 'margin-top:12px' }, 'Après avoir nettoyé le navigateur, touchez « Restaurer » et choisissez le fichier le plus récent.')),
+    h('div', { class: 'card' }, h('h2', {}, 'Importer des recettes'),
+      h('p', { class: 'hint' }, 'Choisissez le fichier d’export de votre application de notes (format JSON). Vous pourrez cocher les plats à ajouter ; vos plats actuels ne sont pas modifiés.'),
+      h('label', { class: 'btn ghost' }, 'Choisir un fichier de recettes', h('input', { type: 'file', accept: '.json,application/json', onchange: e => { const f = e.target.files[0]; if (f) importRecipesFile(f); e.target.value = ''; } }))),
     h('div', { class: 'card' }, h('h2', {}, 'Apparence'),
       h('div', { class: 'hint' }, 'Taille du texte'),
       h('div', { class: 'sizes' }, [14, 17, 21].map((px, i) => h('button', { class: S.prefs.size === i ? 'on' : '', style: 'font-size:' + px + 'px', 'aria-label': 'Taille ' + (i + 1), onclick: () => { S.prefs.size = i; save(); applyPrefs(); render(); } }, 'A'))),

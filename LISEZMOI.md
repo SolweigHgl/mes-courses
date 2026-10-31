@@ -11,6 +11,7 @@ qu'à « livrer » l'application ; ils ne contiennent aucune donnée personnelle
 | `index.html` | Page de départ |
 | `style.css` | Couleurs, tailles, mise en page |
 | `app.js` | Tout le fonctionnement de l'application |
+| `recettes.js` | Lecture d'un export de recettes (notes) pour l'import |
 | `manifest.json` | Nom et icône de l'application sur l'écran d'accueil |
 | `sw.js` | Permet d'ouvrir l'application sans réseau |
 | `favicon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` | Icône de l'application |
@@ -72,6 +73,7 @@ Les icônes sont issues de **Lucide** (https://lucide.dev), sous licence ISC.
 
 ## Historique
 
+- **1.4.0** : import de recettes depuis un export de notes (Réglages > Importer des recettes) ; nouveau fichier `recettes.js`.
 - **1.3.0** : pastille « modifications non sauvegardées » ; une seule sauvegarde automatique par jour ; couleurs à boutons clairs et texte foncé (turquoise #6BD8EC) ; barre d'état crème.
 - **1.2.1** : mise à jour plus fiable (la dernière version est toujours récupérée, puis la page se recharge toute seule).
 - **1.2.0** : icône de l'application et favicon (panier Lucide) ; couleurs rose, vert, orange (FF7F00), turquoise, taupe, plus une couleur au choix.

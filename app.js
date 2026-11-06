@@ -2,7 +2,7 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.4.0';
+const VERSION = '1.4.1';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
@@ -40,7 +40,7 @@ function ic(name, size = 20, sw = 2) {
 }
 
 /* ---------- Données ---------- */
-const defaults = () => ({ v: 2, rev: 0, backedRev: 0, started: false, items: [], dishes: [], plan: {}, stats: {}, sessions: 0, lastBackup: '', prefs: { size: 1, theme: 'rose', custom: '#7B5EA7' } });
+const defaults = () => ({ v: 2, rev: 0, backedRev: 0, started: false, items: [], dishes: [], plan: {}, stats: {}, sessions: 0, lastBackup: '', prefs: { size: 1, theme: 'rose', custom: '#7B5EA7', addBottom: false } });
 
 function normalize(o) {
   const r = Object.assign(defaults(), o || {});
@@ -327,15 +327,19 @@ function viewCourses() {
     h('div', { class: 'rbody', onclick: () => itemSheet(i) }, h('span', { class: 'nm' }, i.name), h('span', { class: 'q' }, fmtQty(i))));
 
   const ordered = S.sessions > 0 && todo.some(i => rankOf(i) != null);
-  const body = [
-    h('p', { class: 'cap' }, (ordered ? 'Classée dans votre ordre habituel · ' : '') + 'touchez un article pour le modifier'),
-    h('div', { class: 'addform' }, nameI, qtyI, unitS, h('button', { class: 'btn plus', onclick: add, 'aria-label': 'Ajouter' }, ic('plus', 24))),
-    habits.length ? h('div', { class: 'chipsrow' }, habits.map(st => h('button', { class: 'hab', onclick: () => { addToList(st.name, st.qty == null ? null : st.qty, st.unit); save(); render(); } }, ic('plus', 16, 2.4), st.name))) : null,
+  const bottom = !!S.prefs.addBottom;
+  const capEl = ordered ? h('p', { class: 'cap' }, 'Classée dans votre ordre habituel') : null;
+  const addEl = h('div', { class: 'addform' }, nameI, qtyI, unitS, h('button', { class: 'btn plus', onclick: add, 'aria-label': 'Ajouter' }, ic('plus', 24)));
+  const habEl = habits.length ? h('div', { class: 'chipsrow' }, habits.map(st => h('button', { class: 'hab', onclick: () => { addToList(st.name, st.qty == null ? null : st.qty, st.unit); save(); render(); } }, ic('plus', 16, 2.4), st.name))) : null;
+  const listEl = [
     todo.length ? h('div', {}, h('div', { class: 'sec' }, 'À acheter (' + todo.length + ')'), h('ul', { class: 'l' }, todo.map(row)))
-      : h('p', { class: 'hint', style: 'margin-top:14px' }, S.items.length ? 'Tout est dans le panier.' : 'Votre liste est vide. Ajoutez un produit ci-dessus, ou générez la liste depuis l’onglet Semaine.'),
-    done.length ? h('div', {}, h('div', { class: 'sec' }, 'Dans le panier (' + done.length + ')'), h('ul', { class: 'l' }, done.map(row))) : null,
-    h('div', { style: 'height:70px' })
+      : h('p', { class: 'hint', style: 'margin-top:14px' }, S.items.length ? 'Tout est dans le panier.' : 'Votre liste est vide. Ajoutez un produit ' + (bottom ? 'ci-dessous' : 'ci-dessus') + ', ou générez la liste depuis l’onglet Semaine.'),
+    done.length ? h('div', {}, h('div', { class: 'sec' }, 'Dans le panier (' + done.length + ')'), h('ul', { class: 'l' }, done.map(row))) : null
   ];
+  const body = (bottom
+    ? [capEl, ...listEl, h('div', { style: 'height:14px' }), addEl, habEl]
+    : [capEl, addEl, habEl, ...listEl]
+  ).concat([h('div', { style: 'height:70px' })]);
   if (done.length) document.body.append(h('div', { class: 'foot' }, h('button', { class: 'btn', onclick: finishSheet }, 'Terminer les courses · ' + done.length + (done.length > 1 ? ' cochés' : ' coché'))));
   return page('Ma liste de courses', body);
 }
@@ -591,53 +595,6 @@ function dishSheet(dish, onSaved) {
   });
 }
 
-/* ----- Import de recettes ----- */
-function importRecipesFile(file) {
-  const r = new FileReader();
-  r.onload = () => {
-    let list;
-    try { list = rcParse(JSON.parse(r.result)); if (!list.length) throw 0; } catch (e) { toast('Fichier non reconnu'); return; }
-    importSheet(list);
-  };
-  r.readAsText(file);
-}
-function importSheet(list) {
-  openSheet((sh, close) => {
-    const rows = list.map(x => {
-      const dup = similarDish(x.name, null);
-      return { x, dup, on: x.ingredients.length >= 2 && !dup };
-    });
-    const btn = h('button', { class: 'btn', style: 'margin-top:14px' });
-    const count = () => rows.filter(r => r.on).length;
-    const refresh = () => { const n = count(); btn.textContent = n ? 'Importer ' + n + ' plat' + (n > 1 ? 's' : '') : 'Aucun plat coché'; btn.disabled = !n; };
-    const line = r => {
-      const cb = h('input', { type: 'checkbox', onchange: e => { r.on = e.target.checked; refresh(); } }); cb.checked = r.on;
-      const n = r.x.ingredients.length;
-      return h('label', { class: 'imp' }, cb, h('span', {}, h('b', {}, r.x.name), h('small', {},
-        n ? n + ' ingrédient' + (n > 1 ? 's' : '') : 'aucun ingrédient détecté', r.dup ? ' · ressemble à « ' + r.dup.name + ' », déjà présent' : '')));
-    };
-    const withIng = rows.filter(r => r.x.ingredients.length), without = rows.filter(r => !r.x.ingredients.length);
-    const setAll = v => { rows.forEach(r => { if (r.x.ingredients.length) r.on = v; }); body.replaceChildren(...build()); refresh(); };
-    const build = () => [
-      h('div', { class: 'sec', style: 'margin:10px 2px 4px' }, 'Plats avec ingrédients (' + withIng.length + ')'),
-      ...withIng.map(line),
-      ...(without.length ? [h('div', { class: 'sec', style: 'margin:14px 2px 4px' }, 'Sans ingrédient détecté (' + without.length + ')'),
-        h('p', { class: 'hint', style: 'margin:0 2px 6px' }, 'Notes sans liste d’ingrédients exploitable : vous pouvez tout de même les importer comme plats vides.'), ...without.map(line)] : [])
-    ];
-    const body = h('div', {}, build());
-    btn.addEventListener('click', () => {
-      const chosen = rows.filter(r => r.on); if (!chosen.length) return;
-      chosen.forEach(r => S.dishes.push({ id: uid(), name: r.x.name, ingredients: r.x.ingredients.map(g => ({ name: g.name, qty: g.qty, unit: g.unit || '' })) }));
-      save(); close(); render(); toast(chosen.length + ' plat' + (chosen.length > 1 ? 's importés' : ' importé'));
-    });
-    sh.append(h('h2', {}, 'Importer des recettes'),
-      h('p', { class: 'hint' }, list.length + ' notes lues. Vérifiez la sélection : vous pourrez corriger chaque plat ensuite.'),
-      h('div', { style: 'display:flex;gap:8px' }, h('button', { class: 'btn ghost', style: 'margin-top:0', onclick: () => setAll(true) }, 'Tout cocher'), h('button', { class: 'btn ghost', style: 'margin-top:0', onclick: () => setAll(false) }, 'Tout décocher')),
-      body, btn, h('button', { class: 'btn link', onclick: close }, 'Annuler'));
-    refresh();
-  });
-}
-
 /* ----- Réglages ----- */
 function customDot() {
   const on = S.prefs.theme === 'perso';
@@ -661,9 +618,9 @@ function viewSettings() {
       h('button', { class: 'btn', onclick: () => doBackup(true) }, 'Sauvegarder maintenant'),
       restoreButton('Restaurer une sauvegarde', 'ghost', true),
       h('p', { class: 'hint', style: 'margin-top:12px' }, 'Après avoir nettoyé le navigateur, touchez « Restaurer » et choisissez le fichier le plus récent.')),
-    h('div', { class: 'card' }, h('h2', {}, 'Importer des recettes'),
-      h('p', { class: 'hint' }, 'Choisissez le fichier d’export de votre application de notes (format JSON). Vous pourrez cocher les plats à ajouter ; vos plats actuels ne sont pas modifiés.'),
-      h('label', { class: 'btn ghost' }, 'Choisir un fichier de recettes', h('input', { type: 'file', accept: '.json,application/json', onchange: e => { const f = e.target.files[0]; if (f) importRecipesFile(f); e.target.value = ''; } }))),
+    h('div', { class: 'card' }, h('h2', {}, 'Liste de courses'),
+      h('div', { class: 'hint' }, 'Place de la ligne d’ajout et des produits habituels'),
+      h('div', { class: 'sizes' }, [['En haut', false], ['En bas', true]].map(([lab, v]) => h('button', { class: !!S.prefs.addBottom === v ? 'on' : '', onclick: () => { S.prefs.addBottom = v; save(); render(); } }, lab)))),
     h('div', { class: 'card' }, h('h2', {}, 'Apparence'),
       h('div', { class: 'hint' }, 'Taille du texte'),
       h('div', { class: 'sizes' }, [14, 17, 21].map((px, i) => h('button', { class: S.prefs.size === i ? 'on' : '', style: 'font-size:' + px + 'px', 'aria-label': 'Taille ' + (i + 1), onclick: () => { S.prefs.size = i; save(); applyPrefs(); render(); } }, 'A'))),

@@ -74,6 +74,7 @@ Les icônes sont issues de **Lucide** (https://lucide.dev), sous licence ISC.
 
 - **1.3.0** : pastille « modifications non sauvegardées » ; une seule sauvegarde automatique par jour ; couleurs à boutons clairs et texte foncé (turquoise #6BD8EC) ; barre d'état crème.
 - **1.4.1** : réglage « Liste de courses » pour placer la ligne d’ajout et les produits habituels en bas ; suppression du texte « touchez un article pour le modifier ».
+- **1.5.0** : avec l'option « En bas », la ligne d'ajout et les produits habituels restent collés au-dessus des onglets (fond en dégradé à 150°, bouton « + » blanc) ; la liste défile au-dessus.
 - **1.2.1** : mise à jour plus fiable (la dernière version est toujours récupérée, puis la page se recharge toute seule).
 - **1.2.0** : icône de l'application et favicon (panier Lucide) ; couleurs rose, vert, orange (FF7F00), turquoise, taupe, plus une couleur au choix.
 - **1.1.0** : icônes plates (Lucide) à la place des émojis ; couleurs rose, vert, turquoise et taupe ; fond de la semaine en taupe clair, jours en blanc avec bordure taupe ; repère du jour dans la couleur choisie.

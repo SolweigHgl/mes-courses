@@ -2,7 +2,7 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.4.1';
+const VERSION = '1.5.0';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
@@ -285,7 +285,9 @@ const page = (title, ...kids) => h('div', {}, h('div', { class: 'hdr' }, h('h1',
 function render() {
   const app = $('#app'); app.replaceChildren();
   document.body.dataset.view = (isEmpty() && !S.started) ? 'accueil' : view;
-  document.querySelectorAll('.tabs,.foot').forEach(t => t.remove());
+  document.querySelectorAll('.tabs,.foot,.dock').forEach(t => t.remove());
+  document.body.classList.remove('typing');
+  document.documentElement.style.setProperty('--dockh', '0px');
   if (isEmpty() && !S.started) { app.append(viewWelcome()); return; }
   app.append(namesList());
   app.append(view === 'courses' ? viewCourses() : view === 'semaine' ? viewWeek() : view === 'plats' ? viewDishes() : viewSettings());
@@ -331,15 +333,23 @@ function viewCourses() {
   const capEl = ordered ? h('p', { class: 'cap' }, 'Classée dans votre ordre habituel') : null;
   const addEl = h('div', { class: 'addform' }, nameI, qtyI, unitS, h('button', { class: 'btn plus', onclick: add, 'aria-label': 'Ajouter' }, ic('plus', 24)));
   const habEl = habits.length ? h('div', { class: 'chipsrow' }, habits.map(st => h('button', { class: 'hab', onclick: () => { addToList(st.name, st.qty == null ? null : st.qty, st.unit); save(); render(); } }, ic('plus', 16, 2.4), st.name))) : null;
+  const sc = 'sec' + (bottom ? ' tight' : '');
   const listEl = [
-    todo.length ? h('div', {}, h('div', { class: 'sec' }, 'À acheter (' + todo.length + ')'), h('ul', { class: 'l' }, todo.map(row)))
+    todo.length ? h('div', {}, h('div', { class: sc }, 'À acheter (' + todo.length + ')'), h('ul', { class: 'l' }, todo.map(row)))
       : h('p', { class: 'hint', style: 'margin-top:14px' }, S.items.length ? 'Tout est dans le panier.' : 'Votre liste est vide. Ajoutez un produit ' + (bottom ? 'ci-dessous' : 'ci-dessus') + ', ou générez la liste depuis l’onglet Semaine.'),
-    done.length ? h('div', {}, h('div', { class: 'sec' }, 'Dans le panier (' + done.length + ')'), h('ul', { class: 'l' }, done.map(row))) : null
+    done.length ? h('div', {}, h('div', { class: todo.length ? 'sec' : sc }, 'Dans le panier (' + done.length + ')'), h('ul', { class: 'l' }, done.map(row))) : null
   ];
-  const body = (bottom
-    ? [capEl, ...listEl, h('div', { style: 'height:14px' }), addEl, habEl]
-    : [capEl, addEl, habEl, ...listEl]
-  ).concat([h('div', { style: 'height:70px' })]);
+  const body = (bottom ? [capEl, ...listEl] : [capEl, addEl, habEl, ...listEl]).concat([h('div', { style: 'height:70px' })]);
+  if (bottom) {
+    const dock = h('div', { class: 'dock' }, addEl, habEl);
+    dock.addEventListener('focusin', () => document.body.classList.add('typing'));
+    dock.addEventListener('focusout', () => setTimeout(() => {
+      const d = document.querySelector('.dock');
+      if (!d || !d.contains(document.activeElement)) document.body.classList.remove('typing');
+    }, 250));
+    document.body.append(dock);
+    document.documentElement.style.setProperty('--dockh', dock.offsetHeight + 'px');
+  }
   if (done.length) document.body.append(h('div', { class: 'foot' }, h('button', { class: 'btn', onclick: finishSheet }, 'Terminer les courses · ' + done.length + (done.length > 1 ? ' cochés' : ' coché'))));
   return page('Ma liste de courses', body);
 }

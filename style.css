@@ -9,7 +9,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:17px}
 body{margin:0;background:var(--bg);color:var(--t);font:1rem/1.35 system-ui,-apple-system,Roboto,"Segoe UI",sans-serif}
-#app{padding-bottom:calc(88px + var(--sa))}
+#app{padding-bottom:calc(88px + var(--sa) + var(--dockh,0px))}
 button,input,select{font:inherit;color:inherit}
 p{margin:0 0 10px}
 h2{font-size:1.15rem;margin:0 0 10px}
@@ -52,7 +52,7 @@ ul.l{list-style:none;margin:0;padding:0;border:1px solid var(--l);border-radius:
 .q{flex:none;color:var(--m);font-size:.88rem}
 .row.done{opacity:.75}
 .row.done .nm{text-decoration:line-through;color:var(--m)}
-.foot{position:fixed;left:12px;right:12px;bottom:calc(70px + var(--sa));max-width:616px;margin:0 auto;z-index:4}
+.foot{position:fixed;left:12px;right:12px;bottom:calc(var(--tabsh,63px) + 7px + var(--sa) + var(--dockh,0px));max-width:616px;margin:0 auto;z-index:4}
 .foot .btn{margin:0;box-shadow:0 6px 16px rgba(0,0,0,.28)}
 
 /* Semaine */
@@ -141,3 +141,13 @@ body[data-view="semaine"] .btn.ghost{background:#fff}
 .badge{position:absolute;top:9px;left:calc(50% + 8px);width:11px;height:11px;border-radius:50%;background:#FF7F00;border:2px solid #fff;display:none}
 .unsaved{display:flex;gap:8px;align-items:flex-start;background:var(--o2);border:1.5px solid #f0c98f;color:#7a4a0a;border-radius:12px;padding:10px 12px;font-size:.88rem}
 .unsaved .ic{margin-top:2px}
+
+/* Ajout collé en bas (option « En bas ») */
+body.typing{--tabsh:0px}
+body.typing .tabs{display:none}
+.dock{position:fixed;left:0;right:0;bottom:calc(var(--tabsh,63px) + var(--sa));z-index:4;padding:10px 12px;background:linear-gradient(150deg,var(--g2),var(--gb));border-top:1.5px solid var(--b1);box-shadow:0 -6px 14px rgba(0,0,0,.08)}
+.dock>*{max-width:616px;margin-left:auto;margin-right:auto}
+.dock input,.dock select{border-color:var(--gb);background:#fff}
+.dock .btn.plus{background:linear-gradient(150deg,var(--g),var(--g1));color:#fff}
+.dock .hab{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.sec.tight{margin-top:2px}

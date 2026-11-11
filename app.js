@@ -2,7 +2,7 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.5.0';
+const VERSION = '1.5.1';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
@@ -561,7 +561,7 @@ function viewDishes() {
       : [h('p', { class: 'hint' }, S.dishes.length ? 'Aucun plat trouvé.' : 'Aucun plat pour l’instant. Créez-en un avec ses ingrédients : vous pourrez le réutiliser chaque semaine.')]));
   };
   q.addEventListener('input', () => { dishQuery = q.value; draw(); }); draw();
-  return page('Mes plats', q, info, list, h('button', { class: 'btn', onclick: () => dishSheet(null) }, '+ Nouveau plat'));
+  return page('Mes plats', h('div', { class: 'searchrow' }, q, h('button', { class: 'btn plus', onclick: () => dishSheet(null), 'aria-label': 'Ajouter un plat' }, ic('plus', 24))), info, list, h('button', { class: 'btn', onclick: () => dishSheet(null) }, '+ Nouveau plat'));
 }
 
 function dishSheet(dish, onSaved) {

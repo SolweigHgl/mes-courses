@@ -35,7 +35,8 @@ label.btn input{display:none}
 
 /* Ajout rapide + habituels */
 .addform{display:grid;grid-template-columns:1fr 62px 90px 48px;gap:6px}
-.addform .plus{margin:0;padding:0}
+.addform .plus,.searchrow .plus{margin:0;padding:0}
+.searchrow{display:grid;grid-template-columns:1fr 48px;gap:6px}
 .chipsrow{display:flex;gap:6px;overflow-x:auto;margin:10px 0 0;padding-bottom:2px;scrollbar-width:none}
 .chipsrow::-webkit-scrollbar{display:none}
 .hab{flex:none;display:flex;align-items:center;gap:6px;color:var(--g);border:0;background:var(--cream);border-radius:20px;padding:8px 13px 8px 10px;font-size:.92rem;cursor:pointer}

@@ -2,7 +2,7 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.5.1';
+const VERSION = '1.5.2';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
@@ -232,12 +232,18 @@ function doBackup(manual) {
   if (view === 'reglages') render();
 }
 let armed = false;
+const BACKUP_DAYS = 7;
+function backupDue() {
+  if (!S.lastBackup) return true;
+  const d = (new Date(iso(new Date()) + 'T12:00:00') - new Date(S.lastBackup + 'T12:00:00')) / 86400000;
+  return !(d >= 0 && d < BACKUP_DAYS);
+}
 function armAutoBackup() {
-  if (armed || !isDirty() || S.lastBackup === iso(new Date())) return;
+  if (armed || !isDirty() || !backupDue()) return;
   armed = true;
   const fire = () => {
     document.removeEventListener('pointerup', fire); armed = false;
-    setTimeout(() => { if (isDirty() && S.lastBackup !== iso(new Date())) doBackup(false); }, 1200);
+    setTimeout(() => { if (isDirty() && backupDue()) doBackup(false); }, 1200);
   };
   document.addEventListener('pointerup', fire);
 }
@@ -622,7 +628,7 @@ function viewSettings() {
   } }, 'Réinitialiser l’ordre');
   return page('Réglages',
     h('div', { class: 'card' }, h('h2', {}, 'Sauvegarde'),
-      h('p', { class: 'hint' }, 'Une sauvegarde est enregistrée automatiquement au plus une fois par jour (à la première utilisation, si vous avez modifié quelque chose), dans le dossier Téléchargements.'),
+      h('p', { class: 'hint' }, 'Une sauvegarde est enregistrée automatiquement tous les 7 jours (à la première utilisation, si vous avez modifié quelque chose), dans le dossier Téléchargements. Vous pouvez aussi la faire à la main à tout moment.'),
       h('p', {}, 'Dernière sauvegarde : ', h('b', {}, last)),
       isDirty() ? h('p', { class: 'unsaved' }, ic('triangle-alert', 18), ' Des modifications ne sont pas encore sauvegardées. Touchez « Sauvegarder maintenant » avant de nettoyer le navigateur.') : h('p', { class: 'hint' }, 'Tout est sauvegardé.'),
       h('button', { class: 'btn', onclick: () => doBackup(true) }, 'Sauvegarder maintenant'),

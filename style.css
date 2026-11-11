@@ -152,3 +152,4 @@ body.typing .tabs{display:none}
 .dock .btn.plus{background:linear-gradient(150deg,var(--g),var(--g1));color:#fff}
 .dock .hab{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1)}
 .sec.tight{margin-top:2px}
+.searchrow .btn.plus{background:linear-gradient(150deg,var(--g),var(--g1));color:#fff}

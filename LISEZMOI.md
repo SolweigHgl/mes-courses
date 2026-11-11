@@ -44,7 +44,7 @@ Les données sont propres à chaque navigateur. Pour passer de Firefox à Brave 
 - Ajouter quelques produits, les cocher dans un ordre, puis **Terminer les courses** (l'ordre du magasin s'apprend après quelques sorties).
 - Créer un plat, planifier un repas avec ce plat et un repas avec des ingrédients seuls, puis **Générer la liste**.
 - Toucher un article pour changer la quantité ou le libellé, ou régler « J'en ai pris moins ».
-- **Sauvegarde** : au plus une fois par jour, à la première utilisation si vous avez modifié quelque chose, un fichier `courses-sauvegarde-AAAA-MM-JJ.json` apparaît dans Téléchargements. Une **pastille orange** sur l'onglet Réglages signale des modifications pas encore sauvegardées : touchez « Sauvegarder maintenant » avant de nettoyer le navigateur.
+- **Sauvegarde** : tous les 7 jours au plus, à la première utilisation si vous avez modifié quelque chose, un fichier `courses-sauvegarde-AAAA-MM-JJ.json` apparaît dans Téléchargements. Une **pastille orange** sur l'onglet Réglages signale des modifications pas encore sauvegardées : touchez « Sauvegarder maintenant » avant de nettoyer le navigateur.
 - **Restauration** : nettoyez les cookies et données de sites, rouvrez l'application, touchez « Restaurer une sauvegarde » et choisissez le fichier le plus récent.
 
 Points à me signaler après l'essai : la sauvegarde automatique (Firefox peut afficher une notification de téléchargement), la présence du choix « Installer », et tout ce qui paraît petit, serré ou peu clair.
@@ -76,6 +76,7 @@ Les icônes sont issues de **Lucide** (https://lucide.dev), sous licence ISC.
 - **1.4.1** : réglage « Liste de courses » pour placer la ligne d’ajout et les produits habituels en bas ; suppression du texte « touchez un article pour le modifier ».
 - **1.5.0** : avec l'option « En bas », la ligne d'ajout et les produits habituels restent collés au-dessus des onglets (fond en dégradé à 150°, bouton « + » blanc) ; la liste défile au-dessus.
 - **1.5.1** : bouton « + » à côté de la recherche dans la liste des plats.
+- **1.5.2** : sauvegarde automatique tous les 7 jours (au lieu de chaque jour) ; le bouton « + » des plats a le même dégradé et le « + » blanc que celui de la liste de courses.
 - **1.2.1** : mise à jour plus fiable (la dernière version est toujours récupérée, puis la page se recharge toute seule).
 - **1.2.0** : icône de l'application et favicon (panier Lucide) ; couleurs rose, vert, orange (FF7F00), turquoise, taupe, plus une couleur au choix.
 - **1.1.0** : icônes plates (Lucide) à la place des émojis ; couleurs rose, vert, turquoise et taupe ; fond de la semaine en taupe clair, jours en blanc avec bordure taupe ; repère du jour dans la couleur choisie.

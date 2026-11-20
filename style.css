@@ -144,8 +144,6 @@ body[data-view="semaine"] .btn.ghost{background:#fff}
 .unsaved .ic{margin-top:2px}
 
 /* Ajout collé en bas (option « En bas ») */
-body.typing{--tabsh:0px}
-body.typing .tabs{display:none}
 .dock{position:fixed;left:0;right:0;bottom:calc(var(--tabsh,63px) + var(--sa));z-index:4;padding:10px 12px;background:linear-gradient(150deg,var(--g2),var(--gb));border-top:1.5px solid var(--b1);box-shadow:0 -6px 14px rgba(0,0,0,.08)}
 .dock>*{max-width:616px;margin-left:auto;margin-right:auto}
 .dock input,.dock select{border-color:var(--gb);background:#fff}
@@ -153,3 +151,4 @@ body.typing .tabs{display:none}
 .dock .hab{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1)}
 .sec.tight{margin-top:2px}
 .searchrow .btn.plus{background:linear-gradient(150deg,var(--g),var(--g1));color:#fff}
+.dockchips .chipsrow{margin-top:8px}

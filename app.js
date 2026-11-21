@@ -2,7 +2,7 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.6.0';
+const VERSION = '1.7.1';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
@@ -30,6 +30,7 @@ const ICONS = {
   'plus': '<path d="M5 12h14"/><path d="M12 5v14"/>',
   'minus': '<path d="M5 12h14"/>',
   'chevron-left': '<path d="m15 18-6-6 6-6"/>',
+  'chevron-down': '<path d="m6 9 6 6 6-6"/>',
   'chevron-right': '<path d="m9 18 6-6-6-6"/>',
   'triangle-alert': '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
 };
@@ -246,6 +247,52 @@ function armAutoBackup() {
     setTimeout(() => { if (isDirty() && backupDue()) doBackup(false); }, 1200);
   };
   document.addEventListener('pointerup', fire);
+}
+/* ----- Importation de plats depuis un fichier texte ----- */
+const UNIT_ALIASES = { l: 'l', litre: 'l', litres: 'l', boite: 'boîte', boites: 'boîte', 'boîtes': 'boîte', sachets: 'sachet', paquets: 'paquet', pots: 'pot', tranches: 'tranche', bouquets: 'bouquet' };
+function parseIngredient(line) {
+  const t = line.replace(/^\s*[-–—•*]\s*/, '').trim();
+  if (!t) return null;
+  const i = t.indexOf(',');
+  let name = (i < 0 ? t : t.slice(0, i)).trim(), rest = i < 0 ? '' : t.slice(i + 1).trim();
+  if (!name) return null;
+  let qty = null, unit = '';
+  if (rest) {
+    const m = rest.match(/^(\d+(?:[.,]\d+)?)\s*(.*)$/);
+    if (m) {
+      const u = m[2].trim().toLowerCase().replace(/\.$/, ''), key = UNIT_ALIASES[u] || u;
+      if (!u || UNITS.some(x => x[0] === key && key)) { qty = parseQty(m[1]); unit = u ? key : ''; }
+      else name += ' (' + rest + ')';
+    } else name += ' (' + rest + ')';
+  }
+  return { name, qty, unit };
+}
+function parseDishes(text) {
+  const out = []; let cur = null;
+  text.replace(/^\uFEFF/, '').split(/\r?\n/).forEach(raw => {
+    const l = raw.trim();
+    if (l.startsWith('#')) {
+      const name = l.replace(/^#+\s*/, '').trim();
+      cur = name ? { id: uid(), name, ingredients: [] } : null;
+      if (cur) out.push(cur);
+    } else if (/^[-–—•*]/.test(l)) {
+      if (cur) { const g = parseIngredient(l); if (g) cur.ingredients.push(g); }
+    }
+  });
+  return out;
+}
+function importDishes(file) {
+  const r = new FileReader();
+  r.onload = () => {
+    const found = parseDishes(String(r.result));
+    if (!found.length) { toast('Aucun plat reconnu dans ce fichier'); return; }
+    const have = new Set(S.dishes.map(d => norm(d.name)));
+    let added = 0, skipped = 0;
+    found.forEach(d => { const k = norm(d.name); if (have.has(k)) { skipped++; return; } have.add(k); S.dishes.push(d); added++; });
+    save(); render();
+    toast((added ? added + (added > 1 ? ' plats importés' : ' plat importé') : 'Aucun nouveau plat') + (skipped ? ' · ' + skipped + ' déjà présent' + (skipped > 1 ? 's' : '') + ' (ignoré' + (skipped > 1 ? 's' : '') + ')' : ''));
+  };
+  r.readAsText(file);
 }
 function restoreFile(file, ask) {
   const r = new FileReader();
@@ -660,21 +707,29 @@ function customDot() {
 }
 function viewSettings() {
   const last = S.lastBackup ? cap1(new Date(S.lastBackup + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })) : 'aucune';
+  const lastTxt = last.toLowerCase();
   const ranked = Object.values(S.stats).filter(st => st.pos != null).length;
   const reset = h('button', { class: 'btn ghost', onclick: () => {
     if (reset.dataset.sure !== '1') { reset.dataset.sure = '1'; reset.textContent = 'Confirmer la réinitialisation'; return; }
     Object.values(S.stats).forEach(st => { st.pos = null; st.npos = 0; }); S.sessions = 0; save(); render(); toast('Ordre du magasin réinitialisé');
   } }, 'Réinitialiser l’ordre');
   return page('Réglages',
-    h('div', { class: 'card' }, h('h2', {}, 'Sauvegarde'),
-      h('p', { class: 'hint' }, 'Une sauvegarde est enregistrée automatiquement tous les 7 jours (à la première utilisation, si vous avez modifié quelque chose), dans le dossier Téléchargements. Vous pouvez aussi la faire à la main à tout moment.'),
-      h('p', {}, 'Dernière sauvegarde : ', h('b', {}, last)),
-      isDirty() ? h('p', { class: 'unsaved' }, ic('triangle-alert', 18), ' Des modifications ne sont pas encore sauvegardées. Touchez « Sauvegarder maintenant » avant de nettoyer le navigateur.') : h('p', { class: 'hint' }, 'Tout est sauvegardé.'),
-      h('button', { class: 'btn', onclick: () => doBackup(true) }, 'Sauvegarder maintenant'),
-      restoreButton('Restaurer une sauvegarde', 'ghost', true),
-      h('p', { class: 'hint', style: 'margin-top:12px' }, 'Après avoir nettoyé le navigateur, touchez « Restaurer » et choisissez le fichier le plus récent.')),
+    h('div', { class: 'card' }, h('h2', {}, 'Sauvegarde quotidienne'),
+      isDirty()
+        ? h('p', { class: 'unsaved' }, ic('triangle-alert', 18), ' Modifications non sauvegardées' + (S.lastBackup ? ' · dernière : ' + lastTxt : ''))
+        : h('p', { class: 'stateok' }, ic('check', 18, 2.6), ' Tout est sauvegardé' + (S.lastBackup ? ' · dernière : ' + lastTxt : '')),
+      h('div', { class: 'two' }, h('button', { class: 'btn', onclick: () => doBackup(true) }, 'Sauvegarder'), restoreButton('Restaurer', 'ghost', true)),
+      h('p', { class: 'hint', style: 'margin:8px 0 0' }, 'Fichier enregistré dans Téléchargements, automatiquement tous les 7 jours. Pensez à sauvegarder avant de nettoyer le navigateur.')),
+    h('div', { class: 'card' }, h('h2', {}, 'Importer des plats'),
+      h('p', { class: 'hint' }, 'Ajoutez vos plats depuis un fichier texte.'),
+      h('label', { class: 'btn' }, 'Importer des plats', h('input', { type: 'file', accept: '.txt,text/plain,text/*', onchange: e => { const f = e.target.files[0]; if (f) importDishes(f); e.target.value = ''; } })),
+      h('details', { class: 'fold' }, h('summary', {}, 'Format du fichier texte', ic('chevron-down', 18)),
+        h('div', { class: 'help' },
+          h('pre', {}, '# Nom du plat\n- ingrédient, quantité unité\n- ingrédient, quantité unité\n- etc.'),
+          h('p', { style: 'margin:0 0 6px' }, 'Unités : g, kg, ml, cl, L, bouquet, boîte, sachet, paquet, pot, tranche. Un plat avec le même nom qu’un plat existant est ignoré.'),
+          h('p', { class: 'hint', style: 'margin:8px 0 0' }, 'Astuce : Demandez à une IA de mettre vos plats dans ce format.')))),
     h('div', { class: 'card' }, h('h2', {}, 'Liste de courses'),
-      h('div', { class: 'hint' }, 'Place de la ligne d’ajout et des produits habituels'),
+      h('div', { class: 'hint' }, 'Emplacement de la ligne d’ajout et des produits habituels'),
       h('div', { class: 'sizes' }, [['En haut', false], ['En bas', true]].map(([lab, v]) => h('button', { class: !!S.prefs.addBottom === v ? 'on' : '', onclick: () => { S.prefs.addBottom = v; save(); render(); } }, lab)))),
     h('div', { class: 'card' }, h('h2', {}, 'Menus de la semaine'),
       h('div', { class: 'hint' }, 'Onglet « Semaine » pour planifier les repas'),

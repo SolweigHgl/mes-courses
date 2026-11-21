@@ -154,3 +154,22 @@ body[data-view="semaine"] .btn.ghost{background:#fff}
 .dockchips .chipsrow{margin-top:8px}
 input.findq{border:2px solid var(--g);background:#fff}
 input.findq:focus{outline:3px solid var(--gb);outline-offset:0}
+
+/* Réglages : sauvegarde et importation */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.two .btn{margin-top:4px;font-size:.95rem}
+.stateok{display:flex;gap:8px;align-items:center;color:#2F7D4F;font-size:.92rem;margin:0 0 8px}
+.unsaved{margin:0 0 8px}
+details.fold{margin-top:10px;border:1px solid var(--gb);border-radius:12px;background:var(--g2)}
+details.fold summary{padding:11px 12px;font-weight:600;color:var(--g);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.fold summary::-webkit-details-marker{display:none}
+details.fold[open] summary .ic{transform:rotate(180deg)}
+.help{padding:0 12px 12px;font-size:.88rem}
+.help ol{margin:0 0 8px;padding-left:20px}
+.help li{margin-bottom:3px}
+.help pre{background:#fff;border:1px solid var(--gb);border-radius:10px;padding:10px;margin:6px 0;font:.82rem/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+
+/* Réglages : sections sans cadre, séparées par un trait fin */
+body[data-view="reglages"] .card{background:none;border:0;border-bottom:1px solid var(--l);border-radius:0;box-shadow:none;padding:16px 2px;margin:0}
+body[data-view="reglages"] .card:first-child{padding-top:4px}
+body[data-view="reglages"] .card:last-of-type{border-bottom:0}

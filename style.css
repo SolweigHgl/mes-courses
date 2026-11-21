@@ -152,3 +152,5 @@ body[data-view="semaine"] .btn.ghost{background:#fff}
 .sec.tight{margin-top:2px}
 .searchrow .btn.plus{background:linear-gradient(150deg,var(--g),var(--g1));color:#fff}
 .dockchips .chipsrow{margin-top:8px}
+input.findq{border:2px solid var(--g);background:#fff}
+input.findq:focus{outline:3px solid var(--gb);outline-offset:0}

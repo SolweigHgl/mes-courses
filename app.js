@@ -2,7 +2,7 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.5.3';
+const VERSION = '1.6.0';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
@@ -40,7 +40,7 @@ function ic(name, size = 20, sw = 2) {
 }
 
 /* ---------- Données ---------- */
-const defaults = () => ({ v: 2, rev: 0, backedRev: 0, started: false, items: [], dishes: [], plan: {}, stats: {}, sessions: 0, lastBackup: '', prefs: { size: 1, theme: 'rose', custom: '#7B5EA7', addBottom: false } });
+const defaults = () => ({ v: 2, rev: 0, backedRev: 0, started: false, items: [], dishes: [], plan: {}, stats: {}, sessions: 0, lastBackup: '', prefs: { size: 1, theme: 'rose', custom: '#7B5EA7', addBottom: false, week: true } });
 
 function normalize(o) {
   const r = Object.assign(defaults(), o || {});
@@ -290,13 +290,14 @@ const page = (title, ...kids) => h('div', {}, h('div', { class: 'hdr' }, h('h1',
 
 function render() {
   const app = $('#app'); app.replaceChildren();
+  if (view === 'semaine' && !S.prefs.week) view = 'courses';
   document.body.dataset.view = (isEmpty() && !S.started) ? 'accueil' : view;
   document.querySelectorAll('.tabs,.foot').forEach(t => t.remove());
   if (view !== 'courses' || (isEmpty() && !S.started)) removeDock();
   if (isEmpty() && !S.started) { app.append(viewWelcome()); return; }
   app.append(namesList());
   app.append(view === 'courses' ? viewCourses() : view === 'semaine' ? viewWeek() : view === 'plats' ? viewDishes() : viewSettings());
-  document.body.append(h('nav', { class: 'tabs' }, [['courses', 'shopping-cart', 'Courses'], ['semaine', 'calendar-days', 'Semaine'], ['plats', 'utensils', 'Plats'], ['reglages', 'settings', 'Réglages']]
+  document.body.append(h('nav', { class: 'tabs' }, [['courses', 'shopping-cart', 'Courses'], S.prefs.week ? ['semaine', 'calendar-days', 'Semaine'] : null, ['plats', 'utensils', 'Plats'], ['reglages', 'settings', 'Réglages']].filter(Boolean)
     .map(([k, i, l]) => h('button', { class: view === k ? 'on' : '', onclick: () => { view = k; render(); window.scrollTo(0, 0); } }, ic(i, 24, view === k ? 2.3 : 1.8), l, k === 'reglages' ? h('i', { class: 'badge', 'aria-label': 'Modifications non sauvegardées' }) : null))));
   refreshBadge();
   armAutoBackup();
@@ -359,7 +360,7 @@ function viewCourses() {
   const sc = 'sec' + (bottom ? ' tight' : '');
   const listEl = [
     todo.length ? h('div', {}, h('div', { class: sc }, 'À acheter (' + todo.length + ')'), h('ul', { class: 'l' }, todo.map(row)))
-      : h('p', { class: 'hint', style: 'margin-top:14px' }, S.items.length ? 'Tout est dans le panier.' : 'Votre liste est vide. Ajoutez un produit ' + (bottom ? 'ci-dessous' : 'ci-dessus') + ', ou générez la liste depuis l’onglet Semaine.'),
+      : h('p', { class: 'hint', style: 'margin-top:14px' }, S.items.length ? 'Tout est dans le panier.' : 'Votre liste est vide. Ajoutez un produit ' + (bottom ? 'ci-dessous' : 'ci-dessus') + (S.prefs.week ? ', ou générez la liste depuis l’onglet Semaine.' : ', ou depuis un plat de l’onglet Plats.')),
     done.length ? h('div', {}, h('div', { class: todo.length ? 'sec' : sc }, 'Dans le panier (' + done.length + ')'), h('ul', { class: 'l' }, done.map(row))) : null
   ];
   const body = (bottom ? [capEl, ...listEl] : [capEl, buildAdd(), habEl, ...listEl]).concat([h('div', { style: 'height:70px' })]);
@@ -477,7 +478,7 @@ function mealSheet(dayIso, dayDate, meal) {
       refreshBtn();
     };
 
-    const q = h('input', { type: 'search', placeholder: 'Chercher un plat ou un ingrédient…', autocomplete: 'off' });
+    const q = h('input', { type: 'search', placeholder: 'Chercher un plat ou un ingrédient…', autocomplete: 'off', class: 'findq' });
     const results = h('div', { class: 'list-sc' });
     const addPart = p => {
       if (p.t === 'dish' && parts.some(x => x.t === 'dish' && x.id === p.id)) { toast('Ce plat est déjà dans le repas'); return; }
@@ -578,6 +579,32 @@ function viewDishes() {
   return page('Mes plats', h('div', { class: 'searchrow' }, q, h('button', { class: 'btn plus', onclick: () => dishSheet(null), 'aria-label': 'Ajouter un plat' }, ic('plus', 24))), info, list, h('button', { class: 'btn', onclick: () => dishSheet(null) }, '+ Nouveau plat'));
 }
 
+/* Ajoute directement les ingrédients d'un plat à la liste de courses (sans passer par la semaine). */
+function dishToListSheet(name, ings) {
+  openSheet((sh, close) => {
+    const map = new Map();
+    ings.forEach(g => {
+      const k = keyOf(g.name, g.unit), e = map.get(k) || { name: g.name, unit: g.unit, qty: null, on: true };
+      if (g.qty != null) e.qty = r2((e.qty || 0) + g.qty); map.set(k, e);
+    });
+    const arr = [...map.values()];
+    const btn = h('button', { class: 'btn' });
+    const upd = () => { const n = arr.filter(e => e.on).length; btn.textContent = 'Ajouter à la liste (' + n + ')'; btn.disabled = !n; };
+    const rows = arr.map(e => {
+      const tick = h('button', { class: 'tick', 'aria-label': e.name });
+      const row = h('div', { class: 'gen' }, tick, h('span', { class: 'nm' }, e.name), h('span', { class: 'q' }, fmtQty(e)));
+      const paint = () => { tick.className = 'tick' + (e.on ? ' on' : ''); tick.replaceChildren(...(e.on ? [ic('check', 18, 3)] : [])); row.classList.toggle('off', !e.on); };
+      row.addEventListener('click', () => { e.on = !e.on; paint(); upd(); }); paint(); return row;
+    });
+    btn.addEventListener('click', () => {
+      arr.filter(e => e.on).forEach(e => addToList(e.name, e.qty, e.unit));
+      save(); close(); view = 'courses'; render(); toast('Liste de courses mise à jour');
+    });
+    upd();
+    sh.append(h('h2', {}, name), h('p', { class: 'hint' }, 'Décochez ce que vous avez déjà à la maison.'), ...rows, btn, h('button', { class: 'btn link', onclick: close }, 'Annuler'));
+  });
+}
+
 function dishSheet(dish, onSaved) {
   openSheet((sh, close) => {
     const d = dish ? JSON.parse(JSON.stringify(dish)) : { id: uid(), name: '', ingredients: [] };
@@ -614,7 +641,11 @@ function dishSheet(dish, onSaved) {
     } }, 'Supprimer ce plat');
     sh.append(h('h2', {}, dish ? 'Modifier le plat' : 'Nouveau plat'), nameI, warn, h('div', { class: 'sec', style: 'margin-left:0' }, 'Ingrédients'), rows,
       h('button', { class: 'btn ghost', onclick: () => { d.ingredients.push({ name: '', qty: null, unit: '' }); draw(); const all = rows.querySelectorAll('input[list]'); all[all.length - 1].focus(); } }, '+ Ingrédient'),
-      saveBtn, ...(dish ? [del] : []), h('button', { class: 'btn link', onclick: close }, 'Annuler'));
+      saveBtn, ...(dish ? [h('button', { class: 'btn ghost', onclick: () => {
+        const ings = d.ingredients.filter(g => g.name.trim()).map(g => ({ name: g.name.trim(), qty: g.qty, unit: g.unit || '' }));
+        if (!ings.length) { toast('Ce plat n’a pas d’ingrédient'); return; }
+        close(); dishToListSheet(d.name || dish.name, ings);
+      } }, ic('shopping-cart', 18), ' Ajouter à la liste de courses'), del] : []), h('button', { class: 'btn link', onclick: close }, 'Annuler'));
     if (!dish) setTimeout(() => nameI.focus(), 50);
   });
 }
@@ -645,6 +676,10 @@ function viewSettings() {
     h('div', { class: 'card' }, h('h2', {}, 'Liste de courses'),
       h('div', { class: 'hint' }, 'Place de la ligne d’ajout et des produits habituels'),
       h('div', { class: 'sizes' }, [['En haut', false], ['En bas', true]].map(([lab, v]) => h('button', { class: !!S.prefs.addBottom === v ? 'on' : '', onclick: () => { S.prefs.addBottom = v; save(); render(); } }, lab)))),
+    h('div', { class: 'card' }, h('h2', {}, 'Menus de la semaine'),
+      h('div', { class: 'hint' }, 'Onglet « Semaine » pour planifier les repas'),
+      h('div', { class: 'sizes' }, [['Activé', true], ['Désactivé', false]].map(([lab, v]) => h('button', { class: !!S.prefs.week === v ? 'on' : '', onclick: () => { S.prefs.week = v; save(); render(); } }, lab))),
+      h('p', { class: 'hint', style: 'margin:0' }, 'Désactivé, l’onglet disparaît ; vos menus déjà saisis sont conservés.')),
     h('div', { class: 'card' }, h('h2', {}, 'Apparence'),
       h('div', { class: 'hint' }, 'Taille du texte'),
       h('div', { class: 'sizes' }, [14, 17, 21].map((px, i) => h('button', { class: S.prefs.size === i ? 'on' : '', style: 'font-size:' + px + 'px', 'aria-label': 'Taille ' + (i + 1), onclick: () => { S.prefs.size = i; save(); applyPrefs(); render(); } }, 'A'))),

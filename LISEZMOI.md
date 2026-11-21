@@ -78,6 +78,7 @@ Les icônes sont issues de **Lucide** (https://lucide.dev), sous licence ISC.
 - **1.5.1** : bouton « + » à côté de la recherche dans la liste des plats.
 - **1.5.2** : sauvegarde automatique tous les 7 jours (au lieu de chaque jour) ; le bouton « + » des plats a le même dégradé et le « + » blanc que celui de la liste de courses.
 - **1.5.3** : avec l'option « En bas », les onglets restent toujours affichés et la ligne d'ajout ne bouge plus (plus de sauts, plus d'ajout à refaire).
+- **1.6.0** : bouton « Ajouter à la liste de courses » dans la fiche d'un plat (avec cases à décocher) ; réglage pour activer/désactiver l'onglet Semaine ; champ « Chercher un plat ou un ingrédient » cerclé de la couleur choisie.
 - **1.2.1** : mise à jour plus fiable (la dernière version est toujours récupérée, puis la page se recharge toute seule).
 - **1.2.0** : icône de l'application et favicon (panier Lucide) ; couleurs rose, vert, orange (FF7F00), turquoise, taupe, plus une couleur au choix.
 - **1.1.0** : icônes plates (Lucide) à la place des émojis ; couleurs rose, vert, turquoise et taupe ; fond de la semaine en taupe clair, jours en blanc avec bordure taupe ; repère du jour dans la couleur choisie.

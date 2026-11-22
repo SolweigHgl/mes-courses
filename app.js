@@ -2,7 +2,7 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.7.1';
+const VERSION = '1.8.2';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
@@ -29,6 +29,9 @@ const ICONS = {
   'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   'plus': '<path d="M5 12h14"/><path d="M12 5v14"/>',
   'minus': '<path d="M5 12h14"/>',
+  'save': '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/>',
+  'trash': '<path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  'circle-x': '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
   'chevron-left': '<path d="m15 18-6-6 6-6"/>',
   'chevron-down': '<path d="m6 9 6 6 6-6"/>',
   'chevron-right': '<path d="m9 18 6-6-6-6"/>',
@@ -41,7 +44,7 @@ function ic(name, size = 20, sw = 2) {
 }
 
 /* ---------- Données ---------- */
-const defaults = () => ({ v: 2, rev: 0, backedRev: 0, started: false, items: [], dishes: [], plan: {}, stats: {}, sessions: 0, lastBackup: '', prefs: { size: 1, theme: 'rose', custom: '#7B5EA7', addBottom: false, week: true } });
+const defaults = () => ({ v: 2, rev: 0, backedRev: 0, started: false, items: [], dishes: [], plan: {}, stats: {}, sessions: 0, lastBackup: '', prefs: { size: 1, theme: 'rose', custom: '#7B5EA7', addBottom: false, week: true, left: false } });
 
 function normalize(o) {
   const r = Object.assign(defaults(), o || {});
@@ -654,16 +657,17 @@ function dishToListSheet(name, ings) {
 
 function dishSheet(dish, onSaved) {
   openSheet((sh, close) => {
+    sh.classList.add('fx');
     const d = dish ? JSON.parse(JSON.stringify(dish)) : { id: uid(), name: '', ingredients: [] };
     if (!d.ingredients.length) d.ingredients.push({ name: '', qty: null, unit: '' });
-    const nameI = h('input', { type: 'text', value: d.name, placeholder: 'Nom du plat (ex. : Gratin de courgettes)', autocomplete: 'off' });
-    const warn = h('div', {}), saveBtn = h('button', { class: 'btn', style: 'margin-top:14px' }, 'Enregistrer');
+    const nameI = h('input', { type: 'text', class: 'pname', value: d.name, placeholder: 'Nom du plat (ex. : Gratin de courgettes)', autocomplete: 'off' });
+    const warn = h('div', {});
+    const saveBtn = h('button', { class: 'btn b-save', 'aria-label': 'Enregistrer' }, ic('save', 24));
     let dup = null;
     const checkDup = () => {
       dup = similarDish(nameI.value, d.id);
       warn.replaceChildren(...(dup ? [h('div', { class: 'warn' }, ic('triangle-alert', 18), ' Un plat ressemble à celui-ci : ', h('b', {}, dup.name), h('br'),
         h('button', { onclick: () => { const t = dup; close(); dishSheet(t); } }, 'Ouvrir ce plat →'))] : []));
-      saveBtn.textContent = dup ? 'Enregistrer quand même' : 'Enregistrer';
     };
     nameI.addEventListener('input', checkDup); checkDup();
     const rows = h('div', {});
@@ -680,19 +684,27 @@ function dishSheet(dish, onSaved) {
       const i = S.dishes.findIndex(x => x.id === d.id); if (i >= 0) S.dishes[i] = d; else S.dishes.push(d);
       save(); close(); render(); if (onSaved) onSaved(d);
     });
-    const del = h('button', { class: 'btn danger', onclick: () => {
-      if (del.dataset.sure !== '1') { del.dataset.sure = '1'; del.textContent = 'Confirmer la suppression'; return; }
+    const cancel = h('button', { class: 'btn ghost b-cancel', 'aria-label': 'Annuler', onclick: close }, ic('circle-x', 24));
+    const del = dish ? h('button', { class: 'btn b-del', 'aria-label': 'Supprimer ce plat', onclick: () => {
+      if (!del.classList.contains('sure')) {
+        del.classList.add('sure'); toast('Touchez encore la corbeille pour supprimer ce plat');
+        setTimeout(() => del.classList.remove('sure'), 4000); return;
+      }
       S.dishes = S.dishes.filter(x => x.id !== d.id);
       for (const k of Object.keys(S.plan)) { S.plan[k].forEach(m => { m.parts = m.parts.filter(p => !(p.t === 'dish' && p.id === d.id)); }); S.plan[k] = S.plan[k].filter(m => m.parts.length); if (!S.plan[k].length) delete S.plan[k]; }
       save(); close(); render();
-    } }, 'Supprimer ce plat');
-    sh.append(h('h2', {}, dish ? 'Modifier le plat' : 'Nouveau plat'), nameI, warn, h('div', { class: 'sec', style: 'margin-left:0' }, 'Ingrédients'), rows,
-      h('button', { class: 'btn ghost', onclick: () => { d.ingredients.push({ name: '', qty: null, unit: '' }); draw(); const all = rows.querySelectorAll('input[list]'); all[all.length - 1].focus(); } }, '+ Ingrédient'),
-      saveBtn, ...(dish ? [h('button', { class: 'btn ghost', onclick: () => {
-        const ings = d.ingredients.filter(g => g.name.trim()).map(g => ({ name: g.name.trim(), qty: g.qty, unit: g.unit || '' }));
-        if (!ings.length) { toast('Ce plat n’a pas d’ingrédient'); return; }
-        close(); dishToListSheet(d.name || dish.name, ings);
-      } }, ic('shopping-cart', 18), ' Ajouter à la liste de courses'), del] : []), h('button', { class: 'btn link', onclick: close }, 'Annuler'));
+    } }, ic('trash', 24)) : null;
+    const addIng = h('button', { class: 'btn ghost', onclick: () => { d.ingredients.push({ name: '', qty: null, unit: '' }); draw(); const all = rows.querySelectorAll('input[list]'); all[all.length - 1].focus(); } }, 'Ajouter un ingrédient');
+    const toList = dish ? h('button', { class: 'btn ghost tolist', onclick: () => {
+      const ings = d.ingredients.filter(g => g.name.trim()).map(g => ({ name: g.name.trim(), qty: g.qty, unit: g.unit || '' }));
+      if (!ings.length) { toast('Ce plat n’a pas d’ingrédient'); return; }
+      close(); dishToListSheet(d.name || dish.name, ings);
+    } }, ic('shopping-cart', 18), ' Ajouter à la liste de courses') : null;
+    const bar = S.prefs.left ? [cancel, saveBtn, del] : [del, saveBtn, cancel];
+    sh.append(
+      h('div', { class: 'sbody' }, h('h2', { class: 'ctr' }, dish ? 'Modifier le plat' : 'Nouveau plat'), nameI, warn,
+        h('div', { class: 'block' }, h('div', { class: 'sechead' }, h('b', {}, 'Ingrédients'), addIng), rows), toList),
+      h('div', { class: 'sbar' }, ...bar.filter(Boolean)));
     if (!dish) setTimeout(() => nameI.focus(), 50);
   });
 }
@@ -731,6 +743,9 @@ function viewSettings() {
     h('div', { class: 'card' }, h('h2', {}, 'Liste de courses'),
       h('div', { class: 'hint' }, 'Emplacement de la ligne d’ajout et des produits habituels'),
       h('div', { class: 'sizes' }, [['En haut', false], ['En bas', true]].map(([lab, v]) => h('button', { class: !!S.prefs.addBottom === v ? 'on' : '', onclick: () => { S.prefs.addBottom = v; save(); render(); } }, lab)))),
+    h('div', { class: 'card' }, h('h2', {}, 'Main utilisée'),
+      h('div', { class: 'hint' }, 'Place des boutons Supprimer, Enregistrer et Annuler'),
+      h('div', { class: 'sizes' }, [['Droitier', false], ['Gaucher', true]].map(([lab, v]) => h('button', { class: !!S.prefs.left === v ? 'on' : '', onclick: () => { S.prefs.left = v; save(); render(); } }, lab)))),
     h('div', { class: 'card' }, h('h2', {}, 'Menus de la semaine'),
       h('div', { class: 'hint' }, 'Onglet « Semaine » pour planifier les repas'),
       h('div', { class: 'sizes' }, [['Activé', true], ['Désactivé', false]].map(([lab, v]) => h('button', { class: !!S.prefs.week === v ? 'on' : '', onclick: () => { S.prefs.week = v; save(); render(); } }, lab))),
@@ -739,8 +754,7 @@ function viewSettings() {
       h('div', { class: 'hint' }, 'Taille du texte'),
       h('div', { class: 'sizes' }, [14, 17, 21].map((px, i) => h('button', { class: S.prefs.size === i ? 'on' : '', style: 'font-size:' + px + 'px', 'aria-label': 'Taille ' + (i + 1), onclick: () => { S.prefs.size = i; save(); applyPrefs(); render(); } }, 'A'))),
       h('div', { class: 'hint' }, 'Couleur'),
-      h('div', { class: 'dots' }, Object.keys(THEMES).map(k => h('button', { class: S.prefs.theme === k ? 'on' : '', style: 'background:linear-gradient(135deg,' + THEMES[k].b1 + ',' + THEMES[k].b2 + ')', 'aria-label': k, onclick: () => { S.prefs.theme = k; save(); applyPrefs(); render(); } })), customDot()),
-      h('p', { class: 'hint', style: 'margin:8px 0 0' }, 'La dernière pastille ouvre un sélecteur : choisissez la couleur de votre choix.')),
+      h('div', { class: 'dots' }, Object.keys(THEMES).map(k => h('button', { class: S.prefs.theme === k ? 'on' : '', style: 'background:linear-gradient(135deg,' + THEMES[k].b1 + ',' + THEMES[k].b2 + ')', 'aria-label': k, onclick: () => { S.prefs.theme = k; save(); applyPrefs(); render(); } })), customDot())),
     h('div', { class: 'card' }, h('h2', {}, 'Ordre du magasin'),
       h('p', { class: 'hint' }, S.sessions ? 'Appris sur ' + S.sessions + ' sortie' + (S.sessions > 1 ? 's' : '') + ' · ' + ranked + ' produit' + (ranked > 1 ? 's' : '') + ' classé' + (ranked > 1 ? 's' : '') : 'Pas encore appris : cochez vos articles au fil du magasin, puis touchez « Terminer les courses ».'),
       S.sessions ? reset : null),

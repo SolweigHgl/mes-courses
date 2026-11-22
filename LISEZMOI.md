@@ -81,6 +81,9 @@ Les icônes sont issues de **Lucide** (https://lucide.dev), sous licence ISC.
 - **1.6.0** : bouton « Ajouter à la liste de courses » dans la fiche d'un plat (avec cases à décocher) ; réglage pour activer/désactiver l'onglet Semaine ; champ « Chercher un plat ou un ingrédient » cerclé de la couleur choisie.
 - **1.7.0** : Réglages plus courts ; section « Importer des plats » (fichier texte : un plat par bloc, un ingrédient par ligne commençant par un tiret) avec explication et modèle à copier.
 - **1.7.1** : Réglages sans cadres ; importation de plats avec « # » devant le nom du plat et « - » devant chaque ingrédient (plus besoin de ligne vide) ; textes raccourcis.
+- **1.8.0** : fiche d'un plat refaite (barre d'icônes Supprimer / Enregistrer / Annuler toujours visible, bloc des ingrédients teinté) ; réglage Droitier / Gaucher ; liseré aux 5 couleurs en bas de l'écran ; texte sur la pastille de couleur retiré.
+- **1.8.1** : liseré multicolore du bas retiré.
+- **1.8.2** : nouveau logo (panier avec bordure aux 5 couleurs, 30 segments) ; les beiges de l'application (bandeaux, fond de la semaine, traits) prennent tous la teinte du thème « taupe », quelle que soit la couleur choisie.
 - **1.2.1** : mise à jour plus fiable (la dernière version est toujours récupérée, puis la page se recharge toute seule).
 - **1.2.0** : icône de l'application et favicon (panier Lucide) ; couleurs rose, vert, orange (FF7F00), turquoise, taupe, plus une couleur au choix.
 - **1.1.0** : icônes plates (Lucide) à la place des émojis ; couleurs rose, vert, turquoise et taupe ; fond de la semaine en taupe clair, jours en blanc avec bordure taupe ; repère du jour dans la couleur choisie.

@@ -2,7 +2,7 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.8.2';
+const VERSION = '1.8.3';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
@@ -11,8 +11,8 @@ const SLOTS = ['Petit-déjeuner', 'Brunch', 'Apéro', 'Midi', 'Goûter', 'Dîner
 const THEMES = {
   rose:      { g: '#D92A63', g1: '#EC5E8C', g2: '#FBE6EF', gb: '#F6D3E1', b1: '#D92A63', b2: '#EC5E8C', bt: '#FFFFFF' },
   vert:      { g: '#2F7D4F', g1: '#4AA673', g2: '#E3F0E8', gb: '#CFE3D6', b1: '#2F7D4F', b2: '#4AA673', bt: '#FFFFFF' },
-  orange:    { g: '#B05400', g1: '#FF7F00', g2: '#FFF0DE', gb: '#F7D9B5', b1: '#FF7F00', b2: '#FF9D3D', bt: '#3A1D00' },
-  turquoise: { g: '#0F8299', g1: '#6BD8EC', g2: '#E3F7FB', gb: '#BFEAF2', b1: '#58CBE2', b2: '#86E2F1', bt: '#0B3340' },
+  orange:    { g: '#B05400', g1: '#FF7F00', g2: '#FFF0DE', gb: '#F7D9B5', b1: '#FF7F00', b2: '#FF8F1F', bt: '#FFFFFF' },
+  turquoise: { g: '#0F8299', g1: '#6BD8EC', g2: '#E3F7FB', gb: '#BFEAF2', b1: '#24B4D1', b2: '#33BFDC', bt: '#FFFFFF' },
   taupe:     { g: '#756559', g1: '#A08F82', g2: '#EEE8E2', gb: '#DDD3CA', b1: '#756559', b2: '#A08F82', bt: '#FFFFFF' }
 };
 

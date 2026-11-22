@@ -2,7 +2,7 @@
 /* ===== Mes courses — logique de l'application =====
    Toutes les données restent sur le téléphone (localStorage). Aucun serveur. */
 
-const VERSION = '1.8.3';
+const VERSION = '1.9.0';
 const KEY = 'mes-courses-v2';
 
 /* ---------- Constantes ---------- */
@@ -251,6 +251,24 @@ function armAutoBackup() {
   };
   document.addEventListener('pointerup', fire);
 }
+/* ----- Mise à jour : interroge vraiment le serveur, puis recharge l'application (les données ne sont pas touchées) ----- */
+async function checkUpdate(btn) {
+  const label = btn.textContent; btn.disabled = true; btn.textContent = 'Recherche en cours…';
+  try {
+    const r = await fetch('app.js?maj=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('réseau');
+    const m = (await r.text()).match(/const VERSION = '([^']+)'/), remote = m && m[1];
+    if (remote && remote !== VERSION) {
+      btn.textContent = 'Installation de la version ' + remote + '…';
+      if ('caches' in window) for (const k of await caches.keys()) if (k.startsWith('mes-courses')) await caches.delete(k);
+      if (navigator.serviceWorker) for (const g of await navigator.serviceWorker.getRegistrations()) await g.unregister();
+      location.reload(); return;
+    }
+    toast('Vous avez déjà la dernière version (' + VERSION + ')');
+  } catch (e) { toast('Impossible de vérifier : vérifiez votre connexion'); }
+  btn.disabled = false; btn.textContent = label;
+}
+
 /* ----- Importation de plats depuis un fichier texte ----- */
 const UNIT_ALIASES = { l: 'l', litre: 'l', litres: 'l', boite: 'boîte', boites: 'boîte', 'boîtes': 'boîte', sachets: 'sachet', paquets: 'paquet', pots: 'pot', tranches: 'tranche', bouquets: 'bouquet' };
 function parseIngredient(line) {
@@ -758,6 +776,8 @@ function viewSettings() {
     h('div', { class: 'card' }, h('h2', {}, 'Ordre du magasin'),
       h('p', { class: 'hint' }, S.sessions ? 'Appris sur ' + S.sessions + ' sortie' + (S.sessions > 1 ? 's' : '') + ' · ' + ranked + ' produit' + (ranked > 1 ? 's' : '') + ' classé' + (ranked > 1 ? 's' : '') : 'Pas encore appris : cochez vos articles au fil du magasin, puis touchez « Terminer les courses ».'),
       S.sessions ? reset : null),
+    h('div', { class: 'card' }, h('h2', {}, 'Mise à jour'),
+      h('button', { class: 'btn ghost', style: 'margin-top:0', onclick: e => checkUpdate(e.currentTarget) }, 'Rechercher une mise à jour')),
     h('p', { class: 'hint', style: 'text-align:center' }, 'Mes courses · version ' + VERSION));
 }
 

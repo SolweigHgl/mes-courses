@@ -1,6 +1,6 @@
 // Service worker : permet d'ouvrir l'application sans réseau.
 // À chaque mise à jour des fichiers, changez le numéro ci-dessous (v4 -> v5 -> v6…).
-const CACHE = 'mes-courses-v20';
+const CACHE = 'mes-courses-v21';
 const FILES = ['./', 'index.html', 'style.css', 'app.js', 'manifest.json', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
 // À l'installation, on télécharge chaque fichier en ignorant la mémoire du navigateur et de GitHub,
@@ -24,6 +24,7 @@ self.addEventListener('activate', e => {
 // puis la vérifie et la met à jour en arrière-plan.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).searchParams.has('maj')) return; // vérification de mise à jour : directement le serveur
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(cached => {
       const net = fetch(e.request, { cache: 'no-cache' }).then(res => {
